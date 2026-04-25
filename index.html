@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAF× — Çarpım Bulmacası</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#d4f03c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="RAF×">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+<script src="js/storage.js" defer></script>
+<script src="js/stats.js" defer></script>
+<script src="js/theme.js" defer></script>
+</head>
+<body>
+
+<div class="landing">
+
+  <!-- ── Navigasyon ── -->
+  <nav class="site-nav">
+
+    <!-- Sol: Profil İkonu -->
+    <button class="nav-profile-icon-btn" id="nav-profile-icon-btn" title="Profil" onclick="openProfileModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
+        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+      </svg>
+    </button>
+
+    <!-- Sağ: Brand + Kontroller -->
+    <div class="nav-right">
+      <div class="nav-brand">RAF<span class="x">×</span></div>
+      <div class="nav-controls">
+        <a href="settings.html" class="nav-btn" title="Ayarlar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          Ayarlar
+        </a>
+      </div>
+    </div>
+
+  </nav>
+
+  <!-- ── Hero ── -->
+  <section class="hero">
+    <div class="hero-logo">RAF<span class="x">×</span></div>
+    <p class="hero-tagline">Sayıları sürükle &nbsp;·&nbsp; Çarpımı eşitle &nbsp;·&nbsp; Kazanı</p>
+    <div class="hero-badges" id="hero-badges"><!-- JS --></div>
+  </section>
+
+  <!-- ── Oyna: Mod + Zorluk ── -->
+  <section class="play-section">
+
+    <!-- Mod sekmeleri -->
+    <div class="mode-tabs" role="tablist">
+      <button class="mode-tab active" data-mode="normal" onclick="selectMode('normal')" role="tab">
+        Normal
+      </button>
+      <button class="mode-tab" data-mode="timed" onclick="selectMode('timed')" role="tab">
+        ⏱ Süre Sınırı
+      </button>
+      <button class="mode-tab" data-mode="endless" onclick="selectMode('endless')" role="tab">
+        ∞ Sonsuz
+      </button>
+    </div>
+
+    <p class="mode-hint" id="mode-hint">Klasik bulmaca — 10 rafı en hızlı ve az hamlede tamamla.</p>
+
+    <!-- Zorluk kartları -->
+    <div class="diff-cards">
+
+      <a href="game.html?d=easy&m=normal" class="diff-card easy">
+        <div class="diff-card-stripe"></div>
+        <div class="diff-card-body">
+          <div class="diff-card-top">
+            <span class="diff-card-name">Kolay</span>
+            <span class="diff-card-tag">2 – 9</span>
+          </div>
+          <p class="diff-card-desc">İki sayılı raflar, küçük çarpımlar</p>
+          <div class="diff-card-record" id="rec-easy">En iyi kayıt yok</div>
+        </div>
+        <div class="diff-card-arrow">→</div>
+      </a>
+
+      <a href="game.html?d=medium&m=normal" class="diff-card medium">
+        <div class="diff-card-stripe"></div>
+        <div class="diff-card-body">
+          <div class="diff-card-top">
+            <span class="diff-card-name">Orta</span>
+            <span class="diff-card-tag">2 – 12</span>
+          </div>
+          <p class="diff-card-desc">Karışık boyutlu raflar, daha büyük sayılar</p>
+          <div class="diff-card-record" id="rec-medium">En iyi kayıt yok</div>
+        </div>
+        <div class="diff-card-arrow">→</div>
+      </a>
+
+      <a href="game.html?d=hard&m=normal" class="diff-card hard">
+        <div class="diff-card-stripe"></div>
+        <div class="diff-card-body">
+          <div class="diff-card-top">
+            <span class="diff-card-name">Zor</span>
+            <span class="diff-card-tag">2 – 15</span>
+          </div>
+          <p class="diff-card-desc">Üç sayılı raflar, büyük çarpımlar, zorlu kombinasyonlar</p>
+          <div class="diff-card-record" id="rec-hard">En iyi kayıt yok</div>
+        </div>
+        <div class="diff-card-arrow">→</div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ── Günlük Bulmaca ── -->
+  <div class="daily-row" id="daily-row" onclick="openDailyModal()">
+    <div class="daily-row-left">
+      <span class="daily-row-icon">📅</span>
+      <div class="daily-row-meta">
+        <span class="daily-row-label">Günlük Bulmaca</span>
+        <span class="daily-row-date" id="daily-date"></span>
+      </div>
+    </div>
+    <div class="daily-row-right">
+      <div class="daily-row-dots" id="daily-row-dots"><!-- JS --></div>
+      <span class="daily-row-cta">Oyna →</span>
+    </div>
+  </div>
+
+  <!-- Günlük Bulmaca Modalı -->
+  <div id="daily-modal" onclick="if(event.target===this)closeDailyModal()">
+    <div class="daily-modal-card">
+      <div class="daily-modal-header">
+        <div class="daily-modal-title">📅 Günlük Bulmaca</div>
+        <button class="daily-modal-close" onclick="closeDailyModal()">✕</button>
+      </div>
+      <div class="daily-modal-date" id="daily-modal-date"></div>
+      <div class="daily-modal-diffs" id="daily-modal-diffs"><!-- JS --></div>
+    </div>
+  </div>
+
+  <footer class="landing-footer">
+    RAF× &nbsp;·&nbsp; Çarpım Bulmacası &nbsp;·&nbsp; 2026
+  </footer>
+
+</div><!-- /landing -->
+
+<!-- ── Profil Modali (mobil) ── -->
+<div id="profile-modal" onclick="if(event.target===this)closeProfileModal()">
+  <div class="profile-modal-card">
+    <div class="profile-modal-header">
+      <div class="profile-modal-avatar">◈</div>
+      <div class="profile-modal-title">Profil</div>
+      <button class="profile-modal-stats-btn" onclick="closeProfileModal(); openStats()">İstatistikler →</button>
+      <button class="profile-modal-close" onclick="closeProfileModal()">✕</button>
+    </div>
+    <div id="profile-modal-body"></div>
+  </div>
+</div>
+
+<!-- ── İstatistik Modali ── -->
+<div id="stats-modal" onclick="if(event.target===this)closeStats()">
+  <div class="stats-card">
+    <div class="stats-header">
+      <div class="stats-title">İstatistikler</div>
+      <button class="stats-close" onclick="closeStats()">✕</button>
+    </div>
+    <div id="stats-modal-body"></div>
+  </div>
+</div>
+
+<script>
+/* ════ MOD SEÇİMİ ════ */
+let selectedMode = 'normal';
+
+const MODE_HINTS = {
+  normal:  'Klasik bulmaca — 10 rafı en hızlı ve az hamlede tamamla.',
+  timed:   'Geri sayım başlar — süre dolmadan tüm rafları tamamla.',
+  endless: 'Raflar tamamlandıkça yenisi gelir — ne kadar sürer?',
+};
+
+function selectMode(mode) {
+  selectedMode = mode;
+  document.querySelectorAll('.mode-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.mode === mode)
+  );
+  const hint = document.getElementById('mode-hint');
+  if (hint) hint.textContent = MODE_HINTS[mode];
+  updateDiffLinks();
+}
+
+function updateDiffLinks() {
+  ['easy', 'medium', 'hard'].forEach(d => {
+    const card = document.querySelector(`.diff-card.${d}`);
+    if (card) card.href = `game.html?d=${d}&m=${selectedMode}`;
+  });
+}
+
+/* ════ GÜNLÜK BULMACA ════ */
+const DAILY_DIFFS = [
+  { key: 'easy',   label: 'Kolay' },
+  { key: 'medium', label: 'Orta'  },
+  { key: 'hard',   label: 'Zor'   },
+];
+
+function buildDailyRow() {
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateEl = document.getElementById('daily-date');
+  if (dateEl) dateEl.textContent = dateStr;
+
+  // Üç zorluk için tamamlanma noktaları
+  const dots = document.getElementById('daily-row-dots');
+  if (dots) {
+    dots.innerHTML = DAILY_DIFFS.map(({ key }) => {
+      const result = getDailyResult(key);
+      const played = !!result;
+      const stars  = played ? result.stars : 0;
+      const label = {easy:'Kolay',medium:'Orta',hard:'Zor'}[key];
+      if (played) {
+        return `<span class="daily-dot ${key} played" title="${label}">${'★'.repeat(stars)}<span class="daily-dot-empty">${'★'.repeat(3-stars)}</span></span>`;
+      }
+      return `<span class="daily-dot ${key}" title="${label}">·</span>`;
+    }).join('');
+  }
+}
+
+function openDailyModal() {
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+  const dateEl = document.getElementById('daily-modal-date');
+  if (dateEl) dateEl.textContent = dateStr;
+
+  const container = document.getElementById('daily-modal-diffs');
+  if (container) {
+    container.innerHTML = DAILY_DIFFS.map(({ key, label }) => {
+      const result = getDailyResult(key);
+      const played = !!result;
+      const stars  = played ? result.stars : 0;
+      return `
+        <a href="game.html?d=${key}&daily=1" class="daily-modal-diff${played ? ' played' : ''}">
+          <div class="daily-modal-diff-left">
+            <span class="daily-modal-diff-name ${key}">${label}</span>
+            ${played ? `<span class="daily-modal-diff-meta">${formatTime(result.time)} · ${result.moves} hamle</span>` : '<span class="daily-modal-diff-meta">Oynanmadı</span>'}
+          </div>
+          <div class="daily-modal-diff-right">
+            <span class="daily-modal-stars">${'★'.repeat(stars)}<span class="daily-modal-stars-empty">${'★'.repeat(3-stars)}</span></span>
+            ${played ? '<span class="daily-modal-check">✓</span>' : '<span class="daily-modal-arrow">→</span>'}
+          </div>
+        </a>
+      `;
+    }).join('');
+  }
+
+  document.getElementById('daily-modal').classList.add('show');
+}
+
+function closeDailyModal() {
+  document.getElementById('daily-modal').classList.remove('show');
+}
+
+/* ════ HERO BADGES ════ */
+function buildHeroBadges() {
+  const s   = getStats();
+  const el  = document.getElementById('hero-badges');
+  if (!el || s.totalGames === 0) return;
+  const badges = [];
+  if (s.totalWins > 0)    badges.push(`${s.totalWins} kazanılan oyun`);
+  if (s.streak > 1)       badges.push(`🔥 ${s.streak} günlük seri`);
+  if (s.totalWins >= 10)  badges.push(`🏅 Tecrübeli oyuncu`);
+  el.innerHTML = badges.map(b => `<span class="hero-badge">${b}</span>`).join('');
+}
+
+/* ════ İSTATİSTİK MODALİ ════ */
+function openStats() {
+  buildStatsModal();
+  document.getElementById('stats-modal').classList.add('show');
+}
+function closeStats() {
+  document.getElementById('stats-modal').classList.remove('show');
+}
+
+function buildStatsModal() {
+  const s    = getStats();
+  const wins = s.totalWins;
+  const pct  = s.totalGames > 0 ? Math.round((wins / s.totalGames) * 100) : 0;
+  const avg  = wins > 0 ? formatTime(Math.round(s.totalTime / wins)) : '—';
+  const avgM = wins > 0 ? Math.round(s.totalMoves / wins) : '—';
+  const maxW = Math.max(s.byDiff.easy.wins, s.byDiff.medium.wins, s.byDiff.hard.wins, 1);
+  const barPct = d => Math.round((s.byDiff[d].wins / maxW) * 100);
+
+  document.getElementById('stats-modal-body').innerHTML = `
+    <div class="stats-row">
+      <div class="stats-box"><div class="stats-box-val">${s.totalGames}</div><div class="stats-box-label">Oyun</div></div>
+      <div class="stats-box"><div class="stats-box-val">${wins}</div><div class="stats-box-label">Kazanılan</div></div>
+      <div class="stats-box"><div class="stats-box-val">${pct}%</div><div class="stats-box-label">Oran</div></div>
+    </div>
+    <div class="stats-row">
+      <div class="stats-box"><div class="stats-box-val">${avg}</div><div class="stats-box-label">Ort. Süre</div></div>
+      <div class="stats-box"><div class="stats-box-val">${avgM}</div><div class="stats-box-label">Ort. Hamle</div></div>
+      <div class="stats-box"><div class="stats-box-val">${s.endless.best || 0}</div><div class="stats-box-label">Sonsuz Rekoru</div></div>
+    </div>
+    <div class="stats-row">
+      <div class="stats-box"><div class="stats-box-val">${s.streak}</div><div class="stats-box-label">Seri</div></div>
+      <div class="stats-box"><div class="stats-box-val">${s.bestStreak}</div><div class="stats-box-label">En Uzun Seri</div></div>
+      <div class="stats-box"><div class="stats-box-val">${s.dailyWins}</div><div class="stats-box-label">Günlük Kazan</div></div>
+    </div>
+    <div class="stats-sub">Zorluk Dağılımı</div>
+    <div class="diff-bars">
+      ${['easy','medium','hard'].map(d => `
+        <div class="diff-bar-row" data-diff="${d}">
+          <div class="diff-bar-label">${{easy:'Kolay',medium:'Orta',hard:'Zor'}[d]}</div>
+          <div class="diff-bar-track"><div class="diff-bar-fill" style="width:${barPct(d)}%"></div></div>
+          <div class="diff-bar-count">${s.byDiff[d].wins}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+/* ════ PROFİL MODALİ (mobil) ════ */
+function openProfileModal() {
+  buildProfileModal();
+  document.getElementById('profile-modal').classList.add('show');
+}
+function closeProfileModal() {
+  document.getElementById('profile-modal').classList.remove('show');
+}
+
+function buildProfileModal() {
+  const s        = getStats();
+  const unlocked = getUnlockedIds();
+  const pct      = s.totalGames > 0 ? Math.round((s.totalWins / s.totalGames) * 100) : 0;
+  const avg      = s.totalWins > 0 ? formatTime(Math.round(s.totalTime / s.totalWins)) : '—';
+  const avgM     = s.totalWins > 0 ? Math.round(s.totalMoves / s.totalWins) : '—';
+  const maxW     = Math.max(s.byDiff.easy.wins, s.byDiff.medium.wins, s.byDiff.hard.wins, 1);
+  const barPct   = d => Math.round((s.byDiff[d].wins / maxW) * 100);
+
+  document.getElementById('profile-modal-body').innerHTML = `
+    <div class="pm-stats-grid">
+      <div class="pm-stat"><span class="pm-stat-val">${s.totalGames}</span><span class="pm-stat-lbl">Oyun</span></div>
+      <div class="pm-stat"><span class="pm-stat-val">${s.totalWins}</span><span class="pm-stat-lbl">Kazanılan</span></div>
+      <div class="pm-stat"><span class="pm-stat-val">${pct}%</span><span class="pm-stat-lbl">Oran</span></div>
+      <div class="pm-stat"><span class="pm-stat-val">${avg}</span><span class="pm-stat-lbl">Ort. Süre</span></div>
+      <div class="pm-stat"><span class="pm-stat-val">${avgM}</span><span class="pm-stat-lbl">Ort. Hamle</span></div>
+      <div class="pm-stat"><span class="pm-stat-val">${s.streak > 0 ? '🔥' + s.streak : '—'}</span><span class="pm-stat-lbl">Seri</span></div>
+      <div class="pm-stat"><span class="pm-stat-val">${s.bestStreak}</span><span class="pm-stat-lbl">En Uzun Seri</span></div>
+      <div class="pm-stat"><span class="pm-stat-val">${s.endless.best || 0}</span><span class="pm-stat-lbl">Sonsuz Rekoru</span></div>
+      <div class="pm-stat"><span class="pm-stat-val">${s.dailyWins}</span><span class="pm-stat-lbl">Günlük Kazan</span></div>
+    </div>
+    <div class="pm-section-label">Zorluk Dağılımı</div>
+    <div class="pm-diff-bars">
+      ${['easy','medium','hard'].map(d => `
+        <div class="pm-diff-bar-row" data-diff="${d}">
+          <div class="pm-diff-bar-label">${{easy:'Kolay',medium:'Orta',hard:'Zor'}[d]}</div>
+          <div class="pm-diff-bar-track"><div class="pm-diff-bar-fill" style="width:${barPct(d)}%"></div></div>
+          <div class="pm-diff-bar-count">${s.byDiff[d].wins}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="pm-section-label">Başarımlar <span class="pm-ach-count">${unlocked.size}/${ACHIEVEMENTS.length}</span></div>
+    <div class="pm-ach-grid">
+      ${ACHIEVEMENTS.map(a => {
+        const on = unlocked.has(a.id);
+        return `<div class="pm-ach-chip${on ? ' on' : ''}" title="${a.name}">
+          <span class="pm-ach-icon">${a.icon}</span>
+          <span class="pm-ach-name">${a.name}</span>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+/* ════ BAŞLAT ════ */
+window.addEventListener('DOMContentLoaded', () => {
+  // Rekorları yükle
+  ['easy', 'medium', 'hard'].forEach(d => {
+    const rec = getRecord(d);
+    const el  = document.getElementById('rec-' + d);
+    if (!el) return;
+    if (rec && rec.bestTime) {
+      el.innerHTML = `<b>${formatTime(rec.bestTime)}</b> &nbsp;·&nbsp; <b>${rec.bestMoves}</b> hamle`;
+      el.classList.add('has-record');
+    }
+  });
+
+  updateDiffLinks();
+  buildDailyRow();
+  buildHeroBadges();
+});
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
+
+</body>
+</html>

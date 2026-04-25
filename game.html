@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAF× — Oyna</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#d4f03c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="RAF×">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+</head>
+<body>
+
+<div class="game-page">
+
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- Header -->
+  <header class="game-header">
+    <a href="index.html" class="back-link" title="Zorluk değiştirmek için menüye dön">← menü</a>
+    <div class="game-logo">RAF<span class="x">×</span></div>
+    <span class="diff-badge" id="diff-badge"></span>
+    <span class="mode-badge" id="mode-badge" style="display:none"></span>
+    <div class="header-spacer"></div>
+    <div class="stat-group">
+      <div class="stat-item">
+        <span class="stat-val" id="timer-val">0:00</span>
+        <span class="stat-label">süre</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-val" id="moves-val">0</span>
+        <span class="stat-label">hamle</span>
+      </div>
+    </div>
+    <button class="hint-btn" id="hint-btn" onclick="useHint()" title="İpucu kullan (her ipucu 1 yıldız kaybettirir)">💡 ipucu <span class="hint-count">3</span></button>
+    <button class="new-btn" onclick="initGame()">yeni oyun</button>
+
+
+  </header>
+
+  <!-- İlerleme -->
+  <div class="progress-wrap">
+    <div class="progress-meta">
+      <span class="progress-text"><strong id="correct-num">0</strong> / 10 raf tamamlandı</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- Oyun Alanı -->
+  <div id="game-area"></div>
+
+</div>
+
+<!-- Win Screen -->
+<div id="win-screen">
+  <div class="win-card">
+    <div class="win-title">Tamamlandı</div>
+    <div class="win-stars" id="win-stars"></div>
+    <div class="win-stats">
+      <div class="win-stat">
+        <div class="win-stat-val" id="win-time">—</div>
+        <div class="win-stat-label">Süre</div>
+      </div>
+      <div class="win-stat">
+        <div class="win-stat-val" id="win-moves">—</div>
+        <div class="win-stat-label">Hamle</div>
+      </div>
+      <div class="win-stat">
+        <div class="win-stat-val" id="win-diff">—</div>
+        <div class="win-stat-label">Zorluk</div>
+      </div>
+    </div>
+    <div class="win-record" id="win-record" style="display:none">🏆 Yeni Rekor</div>
+    <div class="win-daily-badge" id="win-daily-badge" style="display:none">📅 Günlük Bulmaca</div>
+    <div class="win-actions">
+      <button class="btn btn-ghost btn-sm" id="share-btn" onclick="shareResult()">⎘ Paylaş</button>
+      <button class="btn btn-ghost btn-sm" onclick="downloadCard()">↓ Kart</button>
+      <button class="btn btn-primary" onclick="initGame()">Tekrar</button>
+      <a class="btn btn-ghost btn-sm" href="index.html">Menü</a>
+    </div>
+  </div>
+</div>
+
+<!-- Süre Doldu Ekranı -->
+<div id="fail-screen">
+  <div class="fail-card">
+    <div class="fail-icon">⏱</div>
+    <div class="fail-title">Süre Doldu!</div>
+    <div class="fail-sub">Bir dahaki sefere!</div>
+    <div class="fail-stats">
+      <div class="fail-stat">
+        <div class="fail-stat-val" id="fail-correct">0</div>
+        <div class="fail-stat-label">Raf</div>
+      </div>
+      <div class="fail-stat">
+        <div class="fail-stat-val" id="fail-moves">0</div>
+        <div class="fail-stat-label">Hamle</div>
+      </div>
+      <div class="fail-stat">
+        <div class="fail-stat-val" id="fail-diff">—</div>
+        <div class="fail-stat-label">Zorluk</div>
+      </div>
+    </div>
+    <div class="fail-actions">
+      <button class="btn btn-primary" onclick="initGame()">Tekrar</button>
+      <a class="btn btn-ghost btn-sm" href="index.html">Menü</a>
+    </div>
+  </div>
+</div>
+
+<script src="js/audio.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/stats.js"></script>
+<script src="js/puzzle.js"></script>
+<script src="js/drag.js"></script>
+<script src="js/game.js"></script>
+<script src="js/theme.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
+
+</body>
+</html>

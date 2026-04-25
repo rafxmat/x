@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAF× — Ayarlar</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#d4f03c">
+</head>
+<body>
+
+<div class="settings-page">
+
+  <header class="settings-header">
+    <a href="javascript:history.back()" class="back-link">← geri</a>
+    <div class="game-logo">RAF<span class="x">×</span></div>
+    <span class="settings-page-title">Ayarlar</span>
+    <div class="header-spacer"></div>
+  </header>
+
+  <div class="settings-body">
+
+    <!-- GÖRÜNÜM -->
+    <div class="settings-section">
+      <div class="settings-section-label">Görünüm</div>
+
+      <div class="settings-row">
+        <div class="settings-row-info">
+          <div class="settings-row-label">Tema</div>
+          <div class="settings-row-desc">Karanlık veya aydınlık arayüz</div>
+        </div>
+        <label class="bb8-toggle">
+          <input class="bb8-toggle__checkbox" type="checkbox" id="theme-toggle">
+          <div class="bb8-toggle__container">
+            <div class="bb8-toggle__scenery">
+              <div class="bb8-toggle__cloud"></div><div class="bb8-toggle__cloud"></div><div class="bb8-toggle__cloud"></div>
+              <div class="tatto-1"></div><div class="tatto-2"></div><div class="gomrassen"></div>
+              <div class="hermes"></div><div class="chenini"></div>
+              <div class="bb8-toggle__star"></div><div class="bb8-toggle__star"></div><div class="bb8-toggle__star"></div>
+              <div class="bb8-toggle__star"></div><div class="bb8-toggle__star"></div><div class="bb8-toggle__star"></div>
+              <div class="bb8-toggle__star"></div>
+            </div>
+            <div class="bb8">
+              <div class="bb8__head-container">
+                <div class="bb8__antenna"></div><div class="bb8__antenna"></div><div class="bb8__head"></div>
+              </div>
+              <div class="bb8__body"><div class="artificial__hidden"></div></div>
+            </div>
+            <div class="bb8__shadow"></div>
+          </div>
+        </label>
+      </div>
+
+    </div>
+
+    <!-- OYUN -->
+    <div class="settings-section">
+      <div class="settings-section-label">Oyun</div>
+
+      <div class="settings-row">
+        <div class="settings-row-info">
+          <div class="settings-row-label">Ses Efektleri</div>
+          <div class="settings-row-desc">Sürükleme, doğru ve kazanma sesleri</div>
+        </div>
+        <button class="settings-toggle-btn" id="sound-toggle-btn" onclick="onSoundToggle()">Açık</button>
+      </div>
+    </div>
+
+    <!-- VERİ -->
+    <div class="settings-section">
+      <div class="settings-section-label">Veri</div>
+
+      <div class="settings-row">
+        <div class="settings-row-info">
+          <div class="settings-row-label">İstatistikleri Sıfırla</div>
+          <div class="settings-row-desc">Tüm oyun verileri, rekorlar ve başarımlar silinir</div>
+        </div>
+        <button class="settings-danger-btn" id="reset-btn" onclick="onResetStats()">Sıfırla</button>
+      </div>
+    </div>
+
+    <!-- PWA KURULUM -->
+    <div class="settings-section" id="pwa-section" style="display:none">
+      <div class="settings-section-label">Uygulama</div>
+
+      <div class="settings-row">
+        <div class="settings-row-info">
+          <div class="settings-row-label">Uygulamayı Kur</div>
+          <div class="settings-row-desc">Ana ekrana ekle, internet olmadan da oyna</div>
+        </div>
+        <button class="settings-install-btn" id="pwa-install-btn" onclick="installPWA()">Kur</button>
+      </div>
+    </div>
+
+    <!-- HAKKINDA -->
+    <div class="settings-about">
+      RAF× Çarpım Bulmacası &nbsp;·&nbsp; 2026
+    </div>
+
+  </div>
+</div>
+
+<script src="js/storage.js"></script>
+<script src="js/stats.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/theme.js"></script>
+<script>
+let _deferredInstall = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _deferredInstall = e;
+  document.getElementById('pwa-section').style.display = '';
+});
+
+window.addEventListener('appinstalled', () => {
+  _deferredInstall = null;
+  document.getElementById('pwa-section').style.display = 'none';
+});
+
+function onSoundToggle() {
+  toggleMute();
+  updateSoundBtn();
+}
+
+function updateSoundBtn() {
+  const btn = document.getElementById('sound-toggle-btn');
+  if (!btn) return;
+  btn.textContent = isMuted() ? 'Kapalı' : 'Açık';
+  btn.classList.toggle('muted', isMuted());
+}
+
+function onResetStats() {
+  if (!confirm('Tüm istatistikler, rekorlar ve başarımlar silinecek. Devam et?')) return;
+  ['rafx_stats', 'rafx_ach', 'rafx_v1'].forEach(k => localStorage.removeItem(k));
+  const btn = document.getElementById('reset-btn');
+  btn.textContent = '✓ Sıfırlandı';
+  btn.disabled = true;
+  setTimeout(() => { btn.textContent = 'Sıfırla'; btn.disabled = false; }, 2500);
+}
+
+function installPWA() {
+  if (!_deferredInstall) return;
+  _deferredInstall.prompt();
+  _deferredInstall.userChoice.then(() => {
+    _deferredInstall = null;
+    document.getElementById('pwa-section').style.display = 'none';
+  });
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  updateSoundBtn();
+});
+</script>
+
+</body>
+</html>

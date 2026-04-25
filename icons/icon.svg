@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#0c0b09" rx="90"/>
+  <text font-family="'Arial Black','Impact',sans-serif" font-weight="900" font-size="172" text-anchor="middle" dominant-baseline="central" x="256" y="270">
+    <tspan fill="#ede7d9">RAF</tspan><tspan fill="#d4f03c">×</tspan>
+  </text>
+</svg>
