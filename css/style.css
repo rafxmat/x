@@ -70,7 +70,11 @@
 *, *::before, *::after {
   box-sizing: border-box; margin: 0; padding: 0;
   -webkit-tap-highlight-color: transparent;
+  user-select: none; -webkit-user-select: none;
 }
+/* Sadece gerçek yazı alanlarında metin seçimine izin ver */
+input, textarea { user-select: text; -webkit-user-select: text; cursor: text; }
+input[type="range"] { cursor: pointer; }
 html { scroll-behavior: smooth; }
 
 body {
@@ -788,6 +792,101 @@ body:has(.game-page) {
 }
 .new-btn:hover { color: var(--text); border-color: var(--muted3); }
 
+/* Pes butonu */
+.pes-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: transparent; border: 1px solid var(--red); color: var(--red);
+  border-radius: var(--r); padding: 6px 12px;
+  font-family: var(--mono); font-size: 0.68rem;
+  cursor: pointer; transition: background .15s, opacity .15s;
+  text-transform: lowercase;
+}
+.pes-btn:hover:not(:disabled) { background: rgba(255,69,69,.12); }
+.pes-btn:disabled { cursor: not-allowed; opacity: .35; border-color: var(--border2); color: var(--muted3); }
+
+/* ── Çarpım tablosu tooltip ── */
+.factor-tooltip {
+  position: fixed; z-index: 300;
+  background: var(--panel); border: 1px solid var(--border2);
+  border-radius: var(--r); padding: 10px 14px;
+  font-family: var(--mono); font-size: 0.72rem;
+  box-shadow: var(--shadow-lg);
+  display: flex; flex-direction: column; gap: 5px;
+  max-width: 180px;
+  animation: fadeIn .15s ease;
+}
+.factor-tooltip-title {
+  color: var(--muted3); font-size: 0.6rem;
+  text-transform: uppercase; letter-spacing: .06em;
+  margin-bottom: 2px;
+}
+.factor-tooltip span {
+  color: var(--accent); font-weight: 700;
+}
+
+/* ── Raf parçacık patlaması ── */
+.shelf-particle {
+  position: fixed;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 200;
+  animation: particleBurst 0.65s ease-out forwards;
+}
+@keyframes particleBurst {
+  0%   { transform: translate(0,0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--dx),var(--dy)) scale(0); opacity: 0; }
+}
+
+/* ── Müzik ses slider ── */
+.music-slider-wrap {
+  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+  user-select: none; -webkit-user-select: none;
+}
+.music-slider {
+  -webkit-appearance: none; appearance: none;
+  width: 110px; height: 4px;
+  border-radius: 2px;
+  background: var(--border2);
+  outline: none; cursor: pointer;
+}
+.music-slider::-webkit-slider-runnable-track {
+  cursor: pointer;
+}
+.music-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--accent); cursor: pointer;
+  box-shadow: 0 0 6px rgba(212,240,60,.35);
+  transition: transform .12s;
+}
+.music-slider::-webkit-slider-thumb:active { transform: scale(1.2); }
+.music-slider::-moz-range-track { cursor: pointer; }
+.music-slider::-moz-range-thumb {
+  width: 18px; height: 18px; border: none; border-radius: 50%;
+  background: var(--accent); cursor: pointer;
+}
+.music-slider-val {
+  font-family: var(--mono); font-size: 0.72rem;
+  color: var(--muted3); min-width: 26px; text-align: right;
+  cursor: default;
+}
+
+/* Tıkla modunda seçili chip */
+.num-chip.selected {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(212,240,60,.1);
+  box-shadow: 0 0 0 2px rgba(212,240,60,.28);
+}
+
+/* Pes ile otomatik yerleştirilen chip */
+.num-chip.pes-chip {
+  color: var(--gold);
+  border-color: var(--gold);
+  background: rgba(245,166,35,.08);
+}
+
 /* İpucu butonu */
 .hint-btn {
   display: inline-flex; align-items: center; gap: 6px;
@@ -1299,6 +1398,7 @@ body:has(.game-page) {
   .back-link   { font-size: 0.62rem; padding: 5px 10px; }
   .diff-badge  { font-size: 0.55rem; }
   .new-btn     { font-size: 0.62rem; padding: 5px 12px; }
+  .pes-btn     { font-size: 0.62rem; padding: 5px 12px; }
   .stat-val    { font-size: 0.95rem; }
   .stat-item   { padding: 3px 10px; }
   .progress-wrap { margin-bottom: 12px; }
@@ -1334,6 +1434,7 @@ body:has(.game-page) {
   .stat-val  { font-size: 0.88rem; }
   .stat-item { padding: 2px 8px; }
   .new-btn   { padding: 5px 10px; }
+  .pes-btn   { padding: 5px 10px; }
 
   #game-area { grid-template-columns: repeat(2, 1fr); gap: 6px; }
   .shelf { min-height: 96px; padding: 10px 8px 8px; gap: 6px; }
@@ -1648,6 +1749,7 @@ body:has(.game-page) {
 .settings-section-label {
   font-family: var(--mono); font-size: 0.55rem;
   color: var(--muted3); text-transform: uppercase; letter-spacing: 2px;
+  user-select: none; -webkit-user-select: none;
   padding: 10px 18px;
   background: var(--panel2);
   border-bottom: 1px solid var(--border);
@@ -1668,10 +1770,12 @@ body:has(.game-page) {
 }
 .settings-row-label {
   font-family: var(--sans); font-weight: 700; font-size: 0.95rem; color: var(--text);
+  user-select: none; -webkit-user-select: none;
 }
 .settings-row-desc {
   font-family: var(--mono); font-size: 0.56rem;
   color: var(--muted3); text-transform: uppercase; letter-spacing: 0.5px;
+  user-select: none; -webkit-user-select: none;
   line-height: 1.5;
 }
 

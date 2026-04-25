@@ -2,6 +2,7 @@
 <html lang="tr" data-theme="dark">
 <head>
 <meta charset="UTF-8">
+<script>(function(){var t=localStorage.getItem('rafx_theme');document.documentElement.dataset.theme=(t==='light')?'light':'dark';})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RAF× — Çarpım Bulmacası</title>
 <link rel="stylesheet" href="css/style.css">
@@ -393,7 +394,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 <script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 }
 </script>
 

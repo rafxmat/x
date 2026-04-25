@@ -2,6 +2,7 @@
 <html lang="tr" data-theme="dark">
 <head>
 <meta charset="UTF-8">
+<script>(function(){var t=localStorage.getItem('rafx_theme');document.documentElement.dataset.theme=(t==='light')?'light':'dark';})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RAF× — Ayarlar</title>
 <link rel="stylesheet" href="css/style.css">
@@ -64,6 +65,25 @@
           <div class="settings-row-desc">Sürükleme, doğru ve kazanma sesleri</div>
         </div>
         <button class="settings-toggle-btn" id="sound-toggle-btn" onclick="onSoundToggle()">Açık</button>
+      </div>
+
+      <div class="settings-row">
+        <div class="settings-row-info">
+          <div class="settings-row-label">Arka Plan Müziği</div>
+          <div class="settings-row-desc">0 = kapalı · 1–100 ses seviyesi</div>
+        </div>
+        <div class="music-slider-wrap">
+          <input type="range" class="music-slider" id="music-slider" min="0" max="100" step="1" oninput="onMusicSlider(this.value)">
+          <span class="music-slider-val" id="music-slider-val">70</span>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <div class="settings-row-info">
+          <div class="settings-row-label">Kontrol Modu</div>
+          <div class="settings-row-desc">Sürükle veya tıkla → seç → rafa bırak</div>
+        </div>
+        <button class="settings-toggle-btn" id="control-toggle-btn" onclick="onControlToggle()">Sürükle</button>
       </div>
     </div>
 
@@ -134,6 +154,11 @@ function updateSoundBtn() {
 function onResetStats() {
   if (!confirm('Tüm istatistikler, rekorlar ve başarımlar silinecek. Devam et?')) return;
   ['rafx_stats', 'rafx_ach', 'rafx_v1'].forEach(k => localStorage.removeItem(k));
+  // Günlük bulmaca sonuçlarını da temizle (rafx_daily_YYYY-MM-DD_diff)
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith('rafx_daily_')) localStorage.removeItem(k);
+  }
   const btn = document.getElementById('reset-btn');
   btn.textContent = '✓ Sıfırlandı';
   btn.disabled = true;
@@ -149,8 +174,38 @@ function installPWA() {
   });
 }
 
+function updateMusicSlider() {
+  const slider = document.getElementById('music-slider');
+  const valEl  = document.getElementById('music-slider-val');
+  const v = getMusicVolume();
+  if (slider) slider.value = v;
+  if (valEl)  valEl.textContent = v;
+}
+
+function onMusicSlider(v) {
+  const vol = parseInt(v);
+  setMusicVolume(vol);
+  const valEl = document.getElementById('music-slider-val');
+  if (valEl) valEl.textContent = vol;
+}
+
+function updateControlBtn() {
+  const btn = document.getElementById('control-toggle-btn');
+  if (!btn) return;
+  const isClick = getControlMode() === 'click';
+  btn.textContent = isClick ? 'Tıkla' : 'Sürükle';
+  btn.classList.toggle('muted', isClick);
+}
+
+function onControlToggle() {
+  setControlMode(getControlMode() === 'drag' ? 'click' : 'drag');
+  updateControlBtn();
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   updateSoundBtn();
+  updateMusicSlider();
+  updateControlBtn();
 });
 </script>
 

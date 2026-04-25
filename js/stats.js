@@ -76,7 +76,6 @@ function recordGame({ difficulty, mode, seconds, moves, won, stars, isDaily }) {
       s.byDiff[difficulty].wins++;
     }
     if (mode === 'timed')   { s.timed.wins++; }
-    if (mode === 'endless') { s.endless.games++; }
   }
 
   saveStats(s);
@@ -92,6 +91,13 @@ function recordEndlessScore(score) {
     return checkNewAchievements(s);
   }
   return [];
+}
+
+/* ── Sonsuz mod yeni oyun başlangıcı sayacı ── */
+function recordEndlessStart() {
+  const s = getStats();
+  s.endless.games++;
+  saveStats(s);
 }
 
 /* ════════════════════════════════════════
@@ -137,7 +143,7 @@ const ACHIEVEMENTS = [
     id: 'moves15',
     icon: '🎭',
     name: 'Hamle Ustası',
-    desc: '15 hamlede veya azla bitir',
+    desc: '18 hamlede veya azla bitir',
     check: s => s.lowMovesWin,
   },
   {

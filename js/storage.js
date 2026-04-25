@@ -28,6 +28,14 @@ function getRecord(difficulty) {
   return getRecords()[difficulty] || null;
 }
 
+const CONTROL_KEY = 'rafx_control';
+function getControlMode() {
+  return localStorage.getItem(CONTROL_KEY) === 'click' ? 'click' : 'drag';
+}
+function setControlMode(mode) {
+  localStorage.setItem(CONTROL_KEY, mode);
+}
+
 function formatTime(sec) {
   if (!sec && sec !== 0) return '—';
   const m = Math.floor(sec / 60), s = sec % 60;

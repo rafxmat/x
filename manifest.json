@@ -2,7 +2,7 @@
   "name": "RAF× — Çarpım Bulmacası",
   "short_name": "RAF×",
   "description": "Sayıları sürükle, çarpımı eşitle, kazan!",
-  "start_url": "/index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0c0b09",
   "theme_color": "#d4f03c",

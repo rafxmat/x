@@ -23,6 +23,7 @@ const HINTS_MAX  = 3;
 const enteringIds   = new Set();
 const completingIds = new Set();
 const prevLocked    = new Set();
+const pesShelfIds   = new Set();
 
 /* ── Yıldız eşikleri ── */
 const STARS = {
@@ -39,6 +40,14 @@ function calcStars(sec, mv, diff) {
   if (sec <= t.three.sec && mv <= t.three.moves) return 3;
   if (sec <= t.two.sec   && mv <= t.two.moves)   return 2;
   return 1;
+}
+
+/* Final yıldız: ipucu cezası dahil tek doğruluk kaynağı */
+function finalStars() {
+  if (gameMode === 'endless') return 0;
+  let stars = calcStars(timerSec, moves, difficulty);
+  if (hintsUsed > 0) stars = Math.max(1, stars - hintsUsed);
+  return stars;
 }
 
 /* ── Zamanlayıcı ── */
@@ -88,6 +97,52 @@ function popEl(id) {
   el.classList.remove('pop');
   void el.offsetWidth; // reflow
   el.classList.add('pop');
+}
+
+/* ── Çarpım tablosu yardımcısı ── */
+function getFactorPairs(n) {
+  const pairs = [];
+  for (let i = 2; i <= Math.floor(Math.sqrt(n)); i++) {
+    if (n % i === 0) pairs.push([i, n / i]);
+  }
+  return pairs;
+}
+
+function showFactorTooltip(anchor, n) {
+  document.querySelector('.factor-tooltip')?.remove();
+  const pairs = getFactorPairs(n);
+  const tooltip = document.createElement('div');
+  tooltip.className = 'factor-tooltip';
+  const rows = pairs.length
+    ? pairs.map(([a, b]) => `<span>${a} × ${b} = ${n}</span>`).join('')
+    : `<span>${n} — asal sayı</span>`;
+  tooltip.innerHTML = `<div class="factor-tooltip-title">${n}'nin çarpanları</div>${rows}`;
+  document.body.appendChild(tooltip);
+  const rect = anchor.getBoundingClientRect();
+  tooltip.style.top  = (rect.bottom + 6) + 'px';
+  tooltip.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - 190)) + 'px';
+  const dismiss = e => {
+    if (!tooltip.contains(e.target)) { tooltip.remove(); document.removeEventListener('pointerdown', dismiss); }
+  };
+  setTimeout(() => document.addEventListener('pointerdown', dismiss), 100);
+  setTimeout(() => tooltip.remove(), 4500);
+}
+
+/* ── Raf parçacık patlaması ── */
+function burstParticles(shelfEl) {
+  const rect = shelfEl.getBoundingClientRect();
+  const cx = rect.left + rect.width  / 2;
+  const cy = rect.top  + rect.height / 2;
+  const COLORS = ['#4dfa7a','#fbbf24','#d4f03c','#60a5fa','#f87171','#a78bfa'];
+  for (let i = 0; i < 14; i++) {
+    const p = document.createElement('div');
+    p.className = 'shelf-particle';
+    const angle = (i / 14) * Math.PI * 2;
+    const dist  = 35 + Math.random() * 50;
+    p.style.cssText = `left:${cx}px;top:${cy}px;background:${COLORS[i % COLORS.length]};--dx:${(Math.cos(angle)*dist).toFixed(1)}px;--dy:${(Math.sin(angle)*dist).toFixed(1)}px;`;
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 700);
+  }
 }
 
 /* ── Render ── */
@@ -171,27 +226,98 @@ function render(skipSound = false) {
     `;
     area.appendChild(el);
 
+    // Çarpım tablosu yardımcısı
+    const targetEl = el.querySelector('.shelf-target');
+    if (targetEl) {
+      let _pt = null;
+      // Dokunmatik / kalem: uzun basış (600ms)
+      targetEl.addEventListener('pointerdown', e => {
+        if (e.pointerType === 'mouse') return;
+        e.preventDefault();
+        _pt = setTimeout(() => showFactorTooltip(targetEl, shelf.target), 600);
+      });
+      ['pointerup', 'pointerleave'].forEach(ev =>
+        targetEl.addEventListener(ev, e => {
+          if (e.pointerType !== 'mouse') clearTimeout(_pt);
+        })
+      );
+      // Bilgisayar: sağ tık
+      targetEl.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        showFactorTooltip(targetEl, shelf.target);
+      });
+    }
+
+    // Parçacık patlaması
+    if (justDone) burstParticles(el);
+
     const row = el.querySelector(`#row-${shelf.id}`);
     shelf.nums.forEach((num, idx) => {
       const chip = document.createElement('div');
-      chip.className      = 'num-chip';
+      chip.className      = 'num-chip' + (pesShelfIds.has(shelf.id) ? ' pes-chip' : '');
       chip.textContent    = num;
       chip.dataset.shelfId = shelf.id;
       chip.dataset.numIdx  = idx;
       if (!shelf.locked && !isAnimating) {
-        chip.addEventListener('mousedown',  onMouseDown);
-        chip.addEventListener('touchstart', onTouchStart, { passive: false });
+        if (getControlMode() === 'click') {
+          chip.addEventListener('click', onChipClick);
+          // Seçili chip'i vurgula
+          if (getClickSelected()
+              && getClickSelected().fromShelf === shelf.id
+              && getClickSelected().numIdx    === idx) {
+            chip.classList.add('selected');
+          }
+        } else {
+          chip.addEventListener('mousedown',  onMouseDown);
+          chip.addEventListener('touchstart', onTouchStart, { passive: false });
+        }
       }
       row.appendChild(chip);
     });
 
     if (!shelf.locked && !isAnimating) {
-      el.addEventListener('mouseenter', () => { if (getDragState()) el.classList.add('drag-over'); });
-      el.addEventListener('mouseleave', () => el.classList.remove('drag-over'));
+      if (getControlMode() === 'click') {
+        el.addEventListener('click', () => onShelfClickForMove(shelf.id));
+      } else {
+        el.addEventListener('mouseenter', () => { if (getDragState()) el.classList.add('drag-over'); });
+        el.addEventListener('mouseleave', () => el.classList.remove('drag-over'));
+      }
     }
   });
 
   if (page) page.scrollTop = scrollTop;
+}
+
+/* ── Pes: sayıları otomatik yerleştir ── */
+function onPes() {
+  if (gameOver) return;
+  gameOver = true;
+  clearInterval(timerInt);
+
+  const btn = document.getElementById('pes-btn');
+  if (btn) btn.disabled = true;
+  updateHintButton();
+
+  shelves.forEach(shelf => {
+    if (prevLocked.has(shelf.id) || completingIds.has(shelf.id)) return;
+    const sol = _solution[shelf.id];
+    if (!sol) return;
+
+    // Mevcut sayılar çözümden farklıysa → pes-chip olarak işaretle
+    const cur  = [...shelf.nums].sort((a, b) => a - b);
+    const need = [...sol].sort((a, b) => a - b);
+    const alreadyCorrect = cur.length === need.length && cur.every((v, i) => v === need[i]);
+
+    if (!alreadyCorrect) {
+      shelf.nums = [...sol];
+      pesShelfIds.add(shelf.id);
+    }
+
+    shelf.locked = true;
+    prevLocked.add(shelf.id);
+  });
+
+  render(true);
 }
 
 /* ── Kazanma kontrolü ── */
@@ -310,10 +436,7 @@ function useHint() {
 
 /* ── Kazanma ekranı ── */
 function showWin() {
-  let   stars    = gameMode === 'endless' ? 0 : calcStars(timerSec, moves, difficulty);
-  if (gameMode !== 'endless' && hintsUsed > 0) {
-    stars = Math.max(1, stars - hintsUsed);
-  }
+  const stars    = finalStars();
   const timeStr  = formatTime(timerSec);
   const isRecord = saveRecord(difficulty, timerSec, moves);
   const diffName = { easy: 'Kolay', medium: 'Orta', hard: 'Zor' }[difficulty];
@@ -479,7 +602,7 @@ function dropOnShelf(toId) {
 
 /* ── Metin paylaşımı ── */
 function shareResult() {
-  const stars    = calcStars(timerSec, moves, difficulty);
+  const stars    = finalStars();
   const diffName = { easy: 'Kolay', medium: 'Orta', hard: 'Zor' }[difficulty];
   const modeName = { normal: 'Normal', timed: 'Süre Sınırı', endless: 'Sonsuz' }[gameMode];
   const daily    = isDailyMode ? '\n📅 Günlük Bulmaca' : '';
@@ -499,7 +622,7 @@ function shareResult() {
 
 /* ── Görsel kart indir ── */
 function downloadCard() {
-  const stars    = gameMode === 'endless' ? 0 : calcStars(timerSec, moves, difficulty);
+  const stars    = finalStars();
   const diffName = { easy: 'Kolay', medium: 'Orta', hard: 'Zor' }[difficulty];
   const modeName = { normal: 'Normal', timed: 'Süre Sınırı', endless: 'Sonsuz' }[gameMode];
   const dark     = document.documentElement.dataset.theme === 'dark';
@@ -685,6 +808,10 @@ function initGame() {
   enteringIds.clear();
   completingIds.clear();
   prevLocked.clear();
+  pesShelfIds.clear();
+  clearClickSelected();
+  const pesBtn = document.getElementById('pes-btn');
+  if (pesBtn) pesBtn.disabled = false;
 
   const tv = document.getElementById('timer-val');
   tv.textContent = gameMode === 'timed' ? formatTime(TIMED_LIMITS[difficulty]) : '0:00';
@@ -706,6 +833,9 @@ function initGame() {
   const _gen = isDailyMode ? generateDailyGame(difficulty) : generateGame(difficulty);
   shelves   = _gen.shelves;
   _solution = _gen.solution;
+
+  // Sonsuz mod oyun başlangıcı sayacı
+  if (gameMode === 'endless') recordEndlessStart();
 
   // İlerleme etiketi — raf sayısı dinamik
   document.querySelector('.progress-text').innerHTML = gameMode === 'endless'
@@ -782,4 +912,9 @@ window.addEventListener('DOMContentLoaded', () => {
   if (m && ['normal', 'timed', 'endless'].includes(m)) gameMode = m;
   isDailyMode = params.get('daily') === '1';
   initGame();
+
+  // Müzik: ilk etkileşimde başlat (AudioContext policy)
+  if (isMusicOn()) {
+    document.addEventListener('pointerdown', startAmbientMusic, { once: true });
+  }
 });

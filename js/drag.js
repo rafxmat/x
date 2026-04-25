@@ -1,10 +1,46 @@
 // drag.js — Sürükle-bırak sistemi
 
-let _dragState = null;
-let _ghostEl   = null;
+let _dragState     = null;
+let _ghostEl       = null;
+let _clickSelected = null; // { fromShelf, numIdx } — tıkla modu için
 
-function getDragState()   { return _dragState; }
-function clearDragState() { _dragState = null; }
+function getDragState()      { return _dragState; }
+function clearDragState()    { _dragState = null; }
+function getClickSelected()  { return _clickSelected; }
+function clearClickSelected(){ _clickSelected = null; }
+
+/* ── Tıkla: chip seç ── */
+function onChipClick(e) {
+  e.stopPropagation(); // raf click handler'ını tetikleme
+  const chip      = e.currentTarget;
+  const fromShelf = parseInt(chip.dataset.shelfId);
+  const numIdx    = parseInt(chip.dataset.numIdx);
+
+  // Aynı chip'e tekrar basılırsa seçimi kaldır
+  if (_clickSelected && _clickSelected.fromShelf === fromShelf && _clickSelected.numIdx === numIdx) {
+    _clickSelected = null;
+    render(true);
+    return;
+  }
+
+  // Farklı chip → seç
+  sndPickup();
+  _clickSelected = { fromShelf, numIdx };
+  render(true);
+}
+
+/* ── Tıkla: rafa bırak ── */
+function onShelfClickForMove(shelfId) {
+  if (!_clickSelected) return;
+  const { fromShelf, numIdx } = _clickSelected;
+  _clickSelected = null;
+
+  if (fromShelf === shelfId) { render(true); return; }
+
+  // Mevcut dropOnShelf mekanizmasını kullan
+  _dragState = { fromShelf, numIdx };
+  dropOnShelf(shelfId);
+}
 
 /* ── Mouse ── */
 function onMouseDown(e) {
@@ -45,7 +81,10 @@ function startAutoScroll(clientY) {
   if (speed === 0) return;
 
   function step() {
+    // Hem window hem de scroll container'ı (game-page) kaydır
     window.scrollBy(0, speed);
+    const page = document.querySelector('.game-page');
+    if (page) page.scrollTop += speed;
     _scrollAF = requestAnimationFrame(step);
   }
   _scrollAF = requestAnimationFrame(step);

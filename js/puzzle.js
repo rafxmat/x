@@ -99,14 +99,16 @@ function _isSolvableState(shelves, solution) {
 function generateGame(difficulty = 'easy', rng) {
   if (rng) return _tryGenerate(difficulty, rng); // seeded: deterministik
 
+  let lastSolvable = null;
   for (let attempt = 0; attempt < 500; attempt++) {
     const result = _tryGenerate(difficulty);
-    if (!result.shelves.some(s => shelfProduct(s.nums) === s.target) &&
-        _isSolvableState(result.shelves, result.solution)) return result;
+    const solvable = _isSolvableState(result.shelves, result.solution);
+    const noPreSolved = !result.shelves.some(s => shelfProduct(s.nums) === s.target);
+    if (noPreSolved && solvable) return result;
+    if (solvable) lastSolvable = result; // en azından çözülebilir olanı sakla
   }
-  const last = _tryGenerate(difficulty);
-  if (!last.shelves.some(s => shelfProduct(s.nums) === s.target)) return last;
-  return _tryGenerate(difficulty);
+  // Fallback: çözülebilirliği garanti olan en son sonucu döndür
+  return lastSolvable || _tryGenerate(difficulty);
 }
 
 /* Günlük bulmaca üretici */

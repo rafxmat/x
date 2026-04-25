@@ -2,6 +2,7 @@
 <html lang="tr" data-theme="dark">
 <head>
 <meta charset="UTF-8">
+<script>(function(){var t=localStorage.getItem('rafx_theme');document.documentElement.dataset.theme=(t==='light')?'light':'dark';})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RAF× — Oyna</title>
 <link rel="stylesheet" href="css/style.css">
@@ -35,6 +36,7 @@
       </div>
     </div>
     <button class="hint-btn" id="hint-btn" onclick="useHint()" title="İpucu kullan (her ipucu 1 yıldız kaybettirir)">💡 ipucu <span class="hint-count">3</span></button>
+    <button class="pes-btn" id="pes-btn" onclick="onPes()" title="Sayıları otomatik yerleştir">🏳 pes</button>
     <button class="new-btn" onclick="initGame()">yeni oyun</button>
 
 
@@ -121,7 +123,7 @@
 <script src="js/theme.js"></script>
 <script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 }
 </script>
 

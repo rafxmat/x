@@ -1,18 +1,18 @@
 const CACHE = 'rafx-v1';
 const ASSETS = [
-  '/index.html',
-  '/game.html',
-  '/settings.html',
-  '/css/style.css',
-  '/js/audio.js',
-  '/js/drag.js',
-  '/js/game.js',
-  '/js/puzzle.js',
-  '/js/stats.js',
-  '/js/storage.js',
-  '/js/theme.js',
-  '/icons/icon.svg',
-  '/manifest.json',
+  './index.html',
+  './game.html',
+  './settings.html',
+  './css/style.css',
+  './js/audio.js',
+  './js/drag.js',
+  './js/game.js',
+  './js/puzzle.js',
+  './js/stats.js',
+  './js/storage.js',
+  './js/theme.js',
+  './icons/icon.svg',
+  './manifest.json',
 ];
 
 self.addEventListener('install', e => {
