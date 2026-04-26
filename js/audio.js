@@ -38,7 +38,15 @@ function getMusicVolume() {
   const v = parseInt(localStorage.getItem(MUSIC_KEY));
   return isNaN(v) ? 70 : Math.max(0, Math.min(100, v));
 }
-function setMusicVolume(v) { localStorage.setItem(MUSIC_KEY, String(Math.max(0, Math.min(100, v)))); }
+function setMusicVolume(v) {
+  const vol = Math.max(0, Math.min(100, v));
+  localStorage.setItem(MUSIC_KEY, String(vol));
+  if (_musicGain) {
+    const ctx = actx();
+    _musicGain.gain.cancelScheduledValues(ctx.currentTime);
+    _musicGain.gain.setValueAtTime(0.08 * vol / 100, ctx.currentTime);
+  }
+}
 function isMusicOn()       { return getMusicVolume() > 0; }
 function setMusicOn(val)   { setMusicVolume(val ? 70 : 0); }
 
@@ -126,22 +134,17 @@ function stopAmbientMusic() {
   }, 1600);
 }
 
-function toggleAmbientMusic() {
-  const on = !isMusicOn();
-  setMusicOn(on);
-  if (on) startAmbientMusic(); else stopAmbientMusic();
-  return on;
-}
+// Do Re Mi Fa Sol La Si Do Re Mi (C4–E5)
+const SCALE_FREQS = [261.6, 293.7, 329.6, 349.2, 392.0, 440.0, 493.9, 523.3, 587.3, 659.3];
 
 const sndPickup  = () => tone(480, 'sine', 0.07, 0.06);
-const sndCorrect = () => {
-  tone(523, 'sine', 0.1, 0.1);
-  setTimeout(() => tone(659, 'sine', 0.13, 0.1), 75);
-  setTimeout(() => tone(784, 'sine', 0.22, 0.12), 155);
+const sndCorrect = (shelfIndex = 0) => {
+  const freq = SCALE_FREQS[Math.min(shelfIndex, SCALE_FREQS.length - 1)];
+  tone(freq, 'sine', 0.18, 0.12);
 };
 const sndWrong   = () => tone(220, 'sawtooth', 0.08, 0.06);
-const sndWin     = () => {
-  [523, 659, 784, 1047].forEach((f, i) =>
-    setTimeout(() => tone(f, 'sine', 0.28, 0.17), i * 85)
+const sndWinMelody = () => {
+  SCALE_FREQS.forEach((f, i) =>
+    setTimeout(() => tone(f, 'sine', 0.22, 0.13), i * 90)
   );
 };

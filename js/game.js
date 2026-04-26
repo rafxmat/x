@@ -15,7 +15,7 @@ let endlessScore = 0;
 let _bestMisplaced   = Infinity;
 let _movesSinceBest  = 0;
 let _stuckToastShown = false;
-let nextShelfId  = 10;
+let nextShelfId  = 12;
 let hintsUsed    = 0;
 let _solution    = [];
 const HINTS_MAX  = 3;
@@ -173,10 +173,13 @@ function render(skipSound = false) {
   if (gameMode === 'endless' ? endlessScore > prevCorrectNum : correct > prevCorrectNum) popEl('correct-num');
   prevMoves = moves;
 
-  if (!skipSound && correct > prevCorrect) sndCorrect();
+  if (!skipSound && correct > prevCorrect) {
+    const idx = gameMode === 'endless' ? endlessScore % 10 : correct - 1;
+    sndCorrect(idx);
+  }
   prevCorrect = correct;
 
-  shelves.forEach(shelf => {
+  shelves.forEach((shelf, shelfIdx) => {
     const prod      = product(shelf.nums);
     const isCorrect = prod !== null && prod === shelf.target;
     const isWrong   = prod !== null && prod !== shelf.target;
@@ -217,7 +220,7 @@ function render(skipSound = false) {
 
     el.innerHTML = `
       <div class="shelf-top">
-        <span class="shelf-num">Raf ${shelf.id + 1}</span>
+        <span class="shelf-num">Raf ${shelfIdx + 1}</span>
         <span class="shelf-target">${shelf.target}</span>
       </div>
       <div class="numbers-row" id="row-${shelf.id}">
@@ -318,6 +321,7 @@ function onPes() {
   });
 
   render(true);
+  setTimeout(showWin, 800);
 }
 
 /* ── Kazanma kontrolü ── */
@@ -436,23 +440,23 @@ function useHint() {
 
 /* ── Kazanma ekranı ── */
 function showWin() {
-  const stars    = finalStars();
+  const isPes    = pesShelfIds.size > 0;
+  const stars    = isPes ? 0 : finalStars();
   const timeStr  = formatTime(timerSec);
-  const isRecord = saveRecord(difficulty, timerSec, moves);
+  const isRecord = isPes ? false : saveRecord(difficulty, timerSec, moves);
   const diffName = { easy: 'Kolay', medium: 'Orta', hard: 'Zor' }[difficulty];
 
-  // İstatistik kaydet
+  // İstatistik kaydet — pes oyunları kazanılmış sayılmaz
   const newAchs = recordGame({
     difficulty, mode: gameMode,
     seconds: timerSec, moves,
-    won: true, stars,
+    won: !isPes, stars,
     isDaily: isDailyMode,
   });
-  if (isDailyMode) saveDailyResult(difficulty, stars, timerSec, moves);
+  if (isDailyMode && !isPes) saveDailyResult(difficulty, stars, timerSec, moves);
   newAchs.forEach(a => scheduleAchToast(a));
 
-  sndWin();
-  startConfetti();
+  if (!isPes) { sndWinMelody(); startConfetti(); }
 
   document.getElementById('win-time').textContent  = timeStr;
   document.getElementById('win-moves').textContent = moves;
@@ -466,8 +470,39 @@ function showWin() {
   const dailyBadge = document.getElementById('win-daily-badge');
   if (dailyBadge) dailyBadge.style.display = isDailyMode ? 'block' : 'none';
 
+  const winTitle = document.querySelector('.win-title');
+  if (winTitle) winTitle.textContent = pesShelfIds.size > 0 ? 'Tamamlandı (pes)' : 'Tamamlandı';
+
   document.getElementById('win-screen').classList.add('show');
   updateHintButton();
+
+  const streak = getStats().streak;
+  if (!isPes && streak >= 3) setTimeout(() => showStreakOverlay(streak), 900);
+}
+
+/* ── Seri kutlama overlay ── */
+function showStreakOverlay(streak) {
+  const overlay = document.createElement('div');
+  overlay.className = 'streak-overlay';
+  overlay.innerHTML = `
+    <div class="streak-overlay-bg"></div>
+    <div class="streak-card">
+      <div class="streak-fire">🔥</div>
+      <div class="streak-count">${streak}</div>
+      <div class="streak-label">Günlük Seri</div>
+      <div class="streak-sub">${streak} gün üst üste oynadın!</div>
+    </div>
+  `;
+
+  const dismiss = () => {
+    overlay.classList.add('hiding');
+    setTimeout(() => overlay.remove(), 350);
+  };
+
+  overlay.querySelector('.streak-overlay-bg').addEventListener('click', dismiss);
+  overlay.querySelector('.streak-card').addEventListener('click', dismiss);
+  document.body.appendChild(overlay);
+  setTimeout(dismiss, 3800);
 }
 
 /* ── Süre doldu ekranı ── */
@@ -586,7 +621,7 @@ function dropOnShelf(toId) {
   if (!targetShelf || targetShelf.locked || completingIds.has(toId)) {
     clearDragState(); render(true); return;
   }
-  if (fromShelf === toId) { clearDragState(); render(true); return; }
+  if (!sourceShelf || fromShelf === toId) { clearDragState(); render(true); return; }
 
   const val = sourceShelf.nums.splice(numIdx, 1)[0];
   targetShelf.nums.push(val);
@@ -602,11 +637,13 @@ function dropOnShelf(toId) {
 
 /* ── Metin paylaşımı ── */
 function shareResult() {
-  const stars    = finalStars();
+  const isPes    = pesShelfIds.size > 0;
+  const stars    = isPes ? 0 : finalStars();
   const diffName = { easy: 'Kolay', medium: 'Orta', hard: 'Zor' }[difficulty];
   const modeName = { normal: 'Normal', timed: 'Süre Sınırı', endless: 'Sonsuz' }[gameMode];
   const daily    = isDailyMode ? '\n📅 Günlük Bulmaca' : '';
-  const text = `RAF× Çarpım Bulmacası${daily}\n${modeName} · ${diffName}\nSüre: ${formatTime(timerSec)} · Hamle: ${moves}\n${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}`;
+  const pesTag   = isPes ? ' (pes)' : '';
+  const text = `RAF× Çarpım Bulmacası${daily}\n${modeName} · ${diffName}${pesTag}\nSüre: ${formatTime(timerSec)} · Hamle: ${moves}\n${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}`;
   navigator.clipboard.writeText(text).then(() => {
     const btn = document.getElementById('share-btn');
     const orig = btn.textContent;
@@ -622,7 +659,8 @@ function shareResult() {
 
 /* ── Görsel kart indir ── */
 function downloadCard() {
-  const stars    = finalStars();
+  const isPes    = pesShelfIds.size > 0;
+  const stars    = isPes ? 0 : finalStars();
   const diffName = { easy: 'Kolay', medium: 'Orta', hard: 'Zor' }[difficulty];
   const modeName = { normal: 'Normal', timed: 'Süre Sınırı', endless: 'Sonsuz' }[gameMode];
   const dark     = document.documentElement.dataset.theme === 'dark';
@@ -811,7 +849,10 @@ function initGame() {
   pesShelfIds.clear();
   clearClickSelected();
   const pesBtn = document.getElementById('pes-btn');
-  if (pesBtn) pesBtn.disabled = false;
+  if (pesBtn) {
+    pesBtn.disabled = false;
+    pesBtn.style.display = gameMode === 'endless' ? 'none' : '';
+  }
 
   const tv = document.getElementById('timer-val');
   tv.textContent = gameMode === 'timed' ? formatTime(TIMED_LIMITS[difficulty]) : '0:00';

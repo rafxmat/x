@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="RAF×">
 <link rel="apple-touch-icon" href="icons/icon.svg">
 <script src="js/storage.js" defer></script>
-<script src="js/stats.js" defer></script>
+<script src="js/stats.js"></script>
 <script src="js/theme.js" defer></script>
 </head>
 <body>
@@ -47,7 +47,7 @@
   <!-- ── Hero ── -->
   <section class="hero">
     <div class="hero-logo">RAF<span class="x">×</span></div>
-    <p class="hero-tagline">Sayıları sürükle &nbsp;·&nbsp; Çarpımı eşitle &nbsp;·&nbsp; Kazanı</p>
+    <p class="hero-tagline">Sayıları sürükle &nbsp;·&nbsp; Çarpımı eşitle &nbsp;·&nbsp; Kazan</p>
     <div class="hero-badges" id="hero-badges"><!-- JS --></div>
   </section>
 
@@ -67,7 +67,7 @@
       </button>
     </div>
 
-    <p class="mode-hint" id="mode-hint">Klasik bulmaca — 10 rafı en hızlı ve az hamlede tamamla.</p>
+    <p class="mode-hint" id="mode-hint">Klasik bulmaca — 12 rafı en hızlı ve az hamlede tamamla.</p>
 
     <!-- Zorluk kartları -->
     <div class="diff-cards">
@@ -176,7 +176,7 @@
 let selectedMode = 'normal';
 
 const MODE_HINTS = {
-  normal:  'Klasik bulmaca — 10 rafı en hızlı ve az hamlede tamamla.',
+  normal:  'Klasik bulmaca — 12 rafı en hızlı ve az hamlede tamamla.',
   timed:   'Geri sayım başlar — süre dolmadan tüm rafları tamamla.',
   endless: 'Raflar tamamlandıkça yenisi gelir — ne kadar sürer?',
 };
@@ -268,7 +268,7 @@ function buildHeroBadges() {
   if (!el || s.totalGames === 0) return;
   const badges = [];
   if (s.totalWins > 0)    badges.push(`${s.totalWins} kazanılan oyun`);
-  if (s.streak > 1)       badges.push(`🔥 ${s.streak} günlük seri`);
+  if (s.streak >= 1)      badges.push(`🔥 ${s.streak} günlük seri`);
   if (s.totalWins >= 10)  badges.push(`🏅 Tecrübeli oyuncu`);
   el.innerHTML = badges.map(b => `<span class="hero-badge">${b}</span>`).join('');
 }
@@ -283,7 +283,8 @@ function closeStats() {
 }
 
 function buildStatsModal() {
-  const s    = getStats();
+  const s        = getStats();
+  const unlocked = getUnlockedIds();
   const wins = s.totalWins;
   const pct  = s.totalGames > 0 ? Math.round((wins / s.totalGames) * 100) : 0;
   const avg  = wins > 0 ? formatTime(Math.round(s.totalTime / wins)) : '—';
@@ -316,6 +317,16 @@ function buildStatsModal() {
           <div class="diff-bar-count">${s.byDiff[d].wins}</div>
         </div>
       `).join('')}
+    </div>
+    <div class="pm-section-label">Başarımlar <span class="pm-ach-count">${unlocked.size}/${ACHIEVEMENTS.length}</span></div>
+    <div class="pm-ach-grid">
+      ${ACHIEVEMENTS.map(a => {
+        const on = unlocked.has(a.id);
+        return `<div class="pm-ach-chip${on ? ' on' : ''}" title="${a.name}">
+          <span class="pm-ach-icon">${a.icon}</span>
+          <span class="pm-ach-name">${a.name}</span>
+        </div>`;
+      }).join('')}
     </div>
   `;
 }
