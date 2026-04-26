@@ -57,6 +57,19 @@
 
 </div>
 
+<!-- Tutorial Overlay -->
+<div id="tut-overlay" class="tut-overlay" onclick="dismissTutorial()">
+  <div class="tut-card">
+    <div class="tut-demo">
+      <div class="tut-demo-chip">3</div>
+      <div class="tut-demo-arrow"></div>
+      <div class="tut-demo-shelf"><span class="tut-demo-target">× 15</span></div>
+    </div>
+    <div class="tut-text">Sayıyı sürükleyip doğru rafa bırak</div>
+    <div class="tut-hint">Ekrana dokun ve başla</div>
+  </div>
+</div>
+
 <!-- Win Screen -->
 <div id="win-screen">
   <div class="win-card">
@@ -79,9 +92,7 @@
     <div class="win-record" id="win-record" style="display:none">🏆 Yeni Rekor</div>
     <div class="win-daily-badge" id="win-daily-badge" style="display:none">📅 Günlük Bulmaca</div>
     <div class="win-actions">
-      <button class="btn btn-ghost btn-sm" id="share-btn" onclick="shareResult()">⎘ Paylaş</button>
-      <button class="btn btn-ghost btn-sm" onclick="downloadCard()">↓ Kart</button>
-      <button class="btn btn-primary" onclick="initGame()">Tekrar</button>
+<button class="btn btn-primary" onclick="initGame()">Tekrar</button>
       <a class="btn btn-ghost btn-sm" href="index.html">Menü</a>
     </div>
   </div>

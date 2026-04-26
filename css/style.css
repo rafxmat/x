@@ -308,6 +308,58 @@ a { color: inherit; text-decoration: none; }
   text-transform: uppercase; letter-spacing: 0.5px;
 }
 .pm-ach-chip.on .pm-ach-name { color: var(--accent); }
+.pm-ach-chip { cursor: pointer; }
+.pm-ach-chip:hover { opacity: .55; }
+.pm-ach-chip.on:hover { opacity: .8; }
+
+/* ── Başarım Detay Sheet ── */
+.ach-sheet-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.55);
+  display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.22s;
+}
+.ach-sheet-overlay.show { opacity: 1; pointer-events: all; }
+.ach-sheet-card {
+  width: 100%; max-width: 480px;
+  background: var(--panel);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  padding: 20px 24px 36px;
+  text-align: center;
+  transform: translateY(100%);
+  transition: transform 0.32s cubic-bezier(0.34,1.2,0.64,1);
+}
+.ach-sheet-overlay.show .ach-sheet-card { transform: translateY(0); }
+.ach-sheet-handle {
+  width: 36px; height: 4px;
+  background: var(--border2); border-radius: 2px;
+  margin: 0 auto 20px;
+}
+.ach-sheet-icon { font-size: 2.6rem; margin-bottom: 10px; transition: filter .2s, opacity .2s; }
+.ach-sheet-icon.locked { filter: grayscale(1); opacity: .35; }
+.ach-sheet-name {
+  font-family: var(--sans); font-size: 1.05rem; font-weight: 700;
+  color: var(--text); margin-bottom: 6px;
+}
+.ach-sheet-desc {
+  font-family: var(--sans); font-size: 0.84rem;
+  color: var(--muted3); line-height: 1.5; margin-bottom: 16px;
+}
+.ach-sheet-status {
+  display: inline-block; font-family: var(--mono);
+  font-size: 0.75rem; font-weight: 600;
+  padding: 5px 16px; border-radius: 99px; letter-spacing: 0.04em;
+}
+.ach-sheet-status.unlocked {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+}
+.ach-sheet-status.locked {
+  background: var(--muted2); color: var(--muted3); border: 1px solid var(--border);
+}
 
 /* ── Nav Sağ ── */
 .nav-right {
@@ -1007,6 +1059,78 @@ body:has(.game-page) {
 
 #confetti-canvas {
   position: fixed; inset: 0; pointer-events: none; z-index: 498;
+}
+
+/* ── Tutorial Overlay ── */
+.tut-overlay {
+  display: none; position: fixed; inset: 0; z-index: 490;
+  background: rgba(0,0,0,0.72);
+  align-items: center; justify-content: center;
+}
+.tut-overlay.show { display: flex; }
+.tut-overlay.hide .tut-card { opacity: 0; transform: scale(.92); }
+.tut-card {
+  display: flex; flex-direction: column; align-items: center; gap: 18px;
+  padding: 36px 32px;
+  background: var(--panel);
+  border: 1px solid var(--border2);
+  border-top: 2px solid var(--accent);
+  border-radius: var(--r-lg);
+  text-align: center;
+  transition: opacity .3s, transform .3s;
+}
+.tut-demo {
+  display: flex; align-items: center; gap: 14px;
+}
+.tut-demo-chip {
+  width: 48px; height: 48px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--chip-bg); border: 1px solid var(--accent);
+  border-radius: var(--r); font-family: var(--mono); font-size: 1.4rem;
+  font-weight: 700; color: var(--accent);
+  animation: tutChipSlide 1.6s ease-in-out infinite;
+}
+.tut-demo-arrow {
+  width: 32px; height: 2px; background: var(--muted3); position: relative;
+  animation: tutArrowFade 1.6s ease-in-out infinite;
+}
+.tut-demo-arrow::after {
+  content: ''; position: absolute; right: -1px; top: -4px;
+  border: 5px solid transparent; border-left-color: var(--muted3);
+}
+.tut-demo-shelf {
+  width: 72px; height: 48px;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px dashed var(--border2); border-radius: var(--r);
+  animation: tutShelfPulse 1.6s ease-in-out infinite;
+}
+.tut-demo-target {
+  font-family: var(--mono); font-size: 0.9rem;
+  font-weight: 700; color: var(--muted3);
+}
+.tut-text {
+  font-family: var(--sans); font-size: 1rem; font-weight: 600;
+  color: var(--text);
+}
+.tut-hint {
+  font-family: var(--mono); font-size: 0.72rem;
+  color: var(--muted3); text-transform: uppercase; letter-spacing: .06em;
+}
+@keyframes tutChipSlide {
+  0%   { transform: translateX(0);    opacity: 1; }
+  55%  { transform: translateX(52px); opacity: 1; }
+  70%  { transform: translateX(52px); opacity: 0; }
+  71%  { transform: translateX(0);    opacity: 0; }
+  85%  { transform: translateX(0);    opacity: 1; }
+  100% { transform: translateX(0);    opacity: 1; }
+}
+@keyframes tutArrowFade {
+  0%,85%,100% { opacity: 1; }
+  65%,70%     { opacity: 0; }
+}
+@keyframes tutShelfPulse {
+  0%,100% { border-color: var(--border2); }
+  50%     { border-color: var(--accent);  }
 }
 
 #win-screen {
@@ -1792,6 +1916,27 @@ body:has(.game-page) {
   cursor: pointer; transition: opacity .15s;
 }
 .settings-install-btn:hover { opacity: .85; }
+
+.ios-pwa-steps {
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 4px 0 8px;
+}
+.ios-pwa-step {
+  display: flex; align-items: flex-start; gap: 12px;
+  font-family: var(--sans); font-size: 0.84rem;
+  color: var(--muted3); line-height: 1.5;
+}
+.ios-pwa-num {
+  flex-shrink: 0;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--border2);
+  color: var(--accent);
+  font-family: var(--mono); font-size: 0.72rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 1px;
+}
+.ios-pwa-step strong { color: var(--text); }
 
 /* Hakkında */
 .settings-about {

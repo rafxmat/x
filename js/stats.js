@@ -11,8 +11,10 @@ function defaultStats() {
     totalMoves:    0,
     totalTime:     0,
     got3stars:     false,
+    got3starsHard: false,
     subMinuteWin:  false,
     lowMovesWin:   false,
+    noHintWin:     false,
     dailyWins:     0,
     byDiff: {
       easy:   { games: 0, wins: 0 },
@@ -46,7 +48,7 @@ function saveStats(s) {
 }
 
 /* ── Oyun sonu istatistik kaydet ── */
-function recordGame({ difficulty, mode, seconds, moves, won, stars, isDaily }) {
+function recordGame({ difficulty, mode, seconds, moves, won, stars, isDaily, hintsUsed = 0 }) {
   const s = getStats();
   s.totalGames++;
   if (['easy', 'medium', 'hard'].includes(difficulty)) {
@@ -67,9 +69,11 @@ function recordGame({ difficulty, mode, seconds, moves, won, stars, isDaily }) {
     s.totalWins++;
     s.totalMoves += moves;
     s.totalTime  += seconds;
-    if (stars === 3)   s.got3stars    = true;
-    if (seconds < 60)  s.subMinuteWin = true;
-    if (moves <= 18)   s.lowMovesWin  = true;
+    if (stars === 3)                        s.got3stars     = true;
+    if (stars === 3 && difficulty === 'hard') s.got3starsHard = true;
+    if (seconds < 60)                       s.subMinuteWin  = true;
+    if (moves <= 18)                        s.lowMovesWin   = true;
+    if (hintsUsed === 0)                    s.noHintWin     = true;
     if (isDaily)       s.dailyWins++;
 
     if (['easy', 'medium', 'hard'].includes(difficulty)) {
@@ -173,6 +177,76 @@ const ACHIEVEMENTS = [
     name: 'Sonsuz Yolculuk',
     desc: 'Sonsuz modda 20 raf tamamla',
     check: s => s.endless.best >= 20,
+  },
+  {
+    id: 'easy_win',
+    icon: '🟢',
+    name: 'Kolay Zafer',
+    desc: 'Kolay modda bir oyun tamamla',
+    check: s => s.byDiff.easy.wins >= 1,
+  },
+  {
+    id: 'medium_win',
+    icon: '🟡',
+    name: 'Orta Güç',
+    desc: 'Orta modda bir oyun tamamla',
+    check: s => s.byDiff.medium.wins >= 1,
+  },
+  {
+    id: 'hard_win',
+    icon: '🔴',
+    name: 'Zorlu Zafer',
+    desc: 'Zor modda bir oyun tamamla',
+    check: s => s.byDiff.hard.wins >= 1,
+  },
+  {
+    id: 'hard3stars',
+    icon: '💎',
+    name: 'Elmas',
+    desc: 'Zor modda 3 yıldız kazan',
+    check: s => s.got3starsHard,
+  },
+  {
+    id: 'nohint',
+    icon: '🧠',
+    name: 'Saf Zeka',
+    desc: 'İpucu kullanmadan bir oyunu bitir',
+    check: s => s.noHintWin,
+  },
+  {
+    id: 'daily10',
+    icon: '📆',
+    name: 'Günlük Alışkanlık',
+    desc: '10 günlük bulmaca tamamla',
+    check: s => s.dailyWins >= 10,
+  },
+  {
+    id: 'endless10',
+    icon: '🔟',
+    name: 'İlk On',
+    desc: 'Sonsuz modda 10 raf tamamla',
+    check: s => s.endless.best >= 10,
+  },
+  {
+    id: 'endless50',
+    icon: '🌊',
+    name: 'Dalgakıran',
+    desc: 'Sonsuz modda 50 raf tamamla',
+    check: s => s.endless.best >= 50,
+  },
+  {
+    id: 'games100',
+    icon: '💯',
+    name: 'Yüzlük',
+    desc: '100 oyun oyna',
+    check: s => s.totalGames >= 100,
+  },
+  {
+    id: 'hour',
+    icon: '⌛',
+    name: 'Saatler Geçti',
+    desc: 'Toplam 1 saat oyna',
+    check: s => s.totalTime >= 3600,
   },
 ];
 

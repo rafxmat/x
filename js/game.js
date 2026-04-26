@@ -320,8 +320,55 @@ function onPes() {
     prevLocked.add(shelf.id);
   });
 
+  // 1. Render'dan ÖNCE ekrandaki tüm chip konumlarını kaydet (değere göre)
+  const chipPool = {};
+  document.querySelectorAll('.num-chip').forEach(chip => {
+    const val = chip.textContent.trim();
+    if (!chipPool[val]) chipPool[val] = [];
+    chipPool[val].push(chip.getBoundingClientRect());
+  });
+
+  // 2. Rafları çözüme getir ve render et
   render(true);
-  setTimeout(showWin, 800);
+
+  // 3. Her pes-chip'i eski konumundan yeni konumuna kaydır (FLIP)
+  const pesChips = [...document.querySelectorAll('.num-chip.pes-chip')];
+  pesChips.forEach((chip, i) => {
+    const val      = chip.textContent.trim();
+    const fromRect = chipPool[val]?.shift();
+    const toRect   = chip.getBoundingClientRect();
+
+    if (!fromRect) {
+      // Kaynak konumu yoksa yukarıdan belirir
+      chip.style.opacity   = '0';
+      chip.style.transform = 'translateY(-20px) scale(0.5)';
+      setTimeout(() => {
+        chip.style.transition = 'transform 0.36s cubic-bezier(0.34,1.56,0.64,1), opacity 0.22s';
+        chip.style.opacity    = '1';
+        chip.style.transform  = '';
+      }, i * 85);
+      return;
+    }
+
+    const dx = fromRect.left - toRect.left;
+    const dy = fromRect.top  - toRect.top;
+
+    // Chip'i anlık olarak eski konumuna taşı
+    chip.style.transition = 'none';
+    chip.style.transform  = `translate(${dx}px, ${dy}px)`;
+    chip.style.zIndex     = '50';
+    chip.getBoundingClientRect(); // reflow — bir sonraki frame için gerekli
+
+    // Stagger ile hedef konuma süzül
+    setTimeout(() => {
+      chip.style.transition = `transform 0.44s cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+      chip.style.transform  = '';
+      setTimeout(() => { chip.style.transition = chip.style.zIndex = ''; }, 500);
+    }, i * 85);
+  });
+
+  const totalDelay = pesChips.length > 0 ? pesChips.length * 85 + 600 : 800;
+  setTimeout(showWin, totalDelay);
 }
 
 /* ── Kazanma kontrolü ── */
@@ -342,10 +389,7 @@ function replaceShelf(completedId) {
   const idx = shelves.findIndex(s => s.id === completedId);
   if (idx === -1) return;
 
-  const { min, max } = DIFF_CONFIG[difficulty];
-  const size   = Math.random() < 0.5 ? 2 : 3;
-  const nums   = Array.from({ length: size }, () => Math.floor(Math.random() * (max - min + 1)) + min);
-  const target = nums.reduce((a, b) => a * b, 1);
+  const { target, size, nums } = generateSingleShelfNums(difficulty);
 
   const newShelf = { id: nextShelfId++, target, size, nums: [], locked: false };
   shelves[idx] = newShelf;
@@ -452,6 +496,7 @@ function showWin() {
     seconds: timerSec, moves,
     won: !isPes, stars,
     isDaily: isDailyMode,
+    hintsUsed,
   });
   if (isDailyMode && !isPes) saveDailyResult(difficulty, stars, timerSec, moves);
   newAchs.forEach(a => scheduleAchToast(a));
@@ -611,6 +656,7 @@ function reshuffleNums() {
 
 /* ── Drop ── */
 function dropOnShelf(toId) {
+  dismissTutorial();
   const ds = getDragState();
   if (!ds) return;
   const { fromShelf, numIdx } = ds;
@@ -655,6 +701,34 @@ function shareResult() {
     btn.textContent = '✗ Kopyalanamadı';
     setTimeout(() => btn.textContent = orig, 1800);
   });
+}
+
+/* ── roundRect polyfill (Safari <15.4, Chrome <99, Firefox <112) ── */
+if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+    let tl, tr, br, bl;
+    if (Array.isArray(r)) {
+      const n = r.length;
+      if      (n === 1) { tl = tr = br = bl = r[0]; }
+      else if (n === 2) { tl = br = r[0]; tr = bl = r[1]; }
+      else if (n === 3) { tl = r[0]; tr = bl = r[1]; br = r[2]; }
+      else              { tl = r[0]; tr = r[1]; br = r[2]; bl = r[3]; }
+    } else {
+      tl = tr = br = bl = r || 0;
+    }
+    this.beginPath();
+    this.moveTo(x + tl, y);
+    this.lineTo(x + w - tr, y);
+    this.arcTo(x + w, y,     x + w, y + tr,     tr);
+    this.lineTo(x + w, y + h - br);
+    this.arcTo(x + w, y + h, x + w - br, y + h, br);
+    this.lineTo(x + bl, y + h);
+    this.arcTo(x,     y + h, x, y + h - bl,     bl);
+    this.lineTo(x, y + tl);
+    this.arcTo(x,     y,     x + tl, y,          tl);
+    this.closePath();
+    return this;
+  };
 }
 
 /* ── Görsel kart indir ── */
@@ -885,6 +959,19 @@ function initGame() {
   updateHintButton();
   startTimer();
   render(true);
+  showTutorial();
+}
+
+function showTutorial() {
+  if (localStorage.getItem('rafx_tut')) return;
+  const el = document.getElementById('tut-overlay');
+  if (el) el.classList.add('show');
+}
+
+function dismissTutorial() {
+  localStorage.setItem('rafx_tut', '1');
+  const el = document.getElementById('tut-overlay');
+  if (el) { el.classList.add('hide'); setTimeout(() => el.classList.remove('show','hide'), 350); }
 }
 
 /* ── Konfeti ── */

@@ -28,3 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const toggle = document.getElementById('theme-toggle');
   if (toggle) toggle.addEventListener('change', onThemeToggle);
 });
+
+// bfcache'den geri dönüldüğünde temayı yeniden uygula (sayfa yenilenmez)
+window.addEventListener('pageshow', initTheme);

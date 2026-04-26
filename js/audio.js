@@ -1,27 +1,30 @@
 // audio.js — Ses sistemi
 
-const MUTE_KEY = 'rafx_muted';
-let _muted = localStorage.getItem(MUTE_KEY) === '1';
-let _actx   = null;
+const SFX_KEY = 'rafx_sfx';
+let _actx     = null;
 
-function isMuted()    { return _muted; }
-function toggleMute() {
-  _muted = !_muted;
-  localStorage.setItem(MUTE_KEY, _muted ? '1' : '0');
+function getSfxVolume() {
+  const v = parseInt(localStorage.getItem(SFX_KEY));
+  return isNaN(v) ? 80 : Math.max(0, Math.min(100, v));
 }
+function setSfxVolume(v) {
+  localStorage.setItem(SFX_KEY, String(Math.max(0, Math.min(100, v))));
+}
+function isMuted() { return getSfxVolume() === 0; }
 
 function actx() {
   return _actx || (_actx = new (window.AudioContext || window.webkitAudioContext)());
 }
 
 function tone(freq, type, dur, vol = 0.12) {
-  if (_muted) return;
+  const sfxVol = getSfxVolume();
+  if (sfxVol === 0) return;
   try {
     const c = actx(), o = c.createOscillator(), g = c.createGain();
     o.connect(g); g.connect(c.destination);
     o.type = type;
     o.frequency.setValueAtTime(freq, c.currentTime);
-    g.gain.setValueAtTime(vol, c.currentTime);
+    g.gain.setValueAtTime(vol * sfxVol / 100, c.currentTime);
     g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
     o.start(c.currentTime);
     o.stop(c.currentTime + dur);

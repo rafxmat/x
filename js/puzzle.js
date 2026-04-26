@@ -1,20 +1,20 @@
-// puzzle.js — Bulmaca üreteci
+// puzzle.js — Bulmaca üreteci (asal tabanlı)
 
-const DIFF_CONFIG = {
-  easy:   { min: 2, max: 9  },
-  medium: { min: 2, max: 12 },
-  hard:   { min: 2, max: 15 },
+// Asal havuzlar: her zorluğa özgü, çakışma yaratmayan sayılar
+const PRIME_POOLS = {
+  easy:   [2, 3, 5, 7],
+  medium: [2, 3, 5, 7, 11, 13],
+  hard:   [2, 3, 5, 7, 11, 13, 17, 19],
 };
 
-function randInt(a, b, rng) {
-  return Math.floor((rng || Math.random)() * (b - a + 1)) + a;
-}
+// Sonsuz mod replaceShelf için geriye dönük uyumluluk etiketi
+const DIFF_CONFIG = {
+  easy:   { min: 2, max: 7  },
+  medium: { min: 2, max: 13 },
+  hard:   { min: 2, max: 19 },
+};
 
-function shelfProduct(nums) {
-  return nums.reduce((a, b) => a * b, 1);
-}
-
-/* Fisher-Yates karıştırıcı (isteğe bağlı seeded rng) */
+/* Fisher-Yates karıştırıcı */
 function shuffleArr(arr, rng) {
   const r = rng || Math.random;
   for (let i = arr.length - 1; i > 0; i--) {
@@ -24,7 +24,7 @@ function shuffleArr(arr, rng) {
   return arr;
 }
 
-/* ── Seeded RNG (Mulberry32) — Günlük bulmaca için ── */
+/* Seeded RNG (Mulberry32) */
 function mulberry32(seed) {
   return function () {
     seed |= 0; seed = seed + 0x6D2B79F5 | 0;
@@ -41,21 +41,45 @@ function getDailySeed(difficulty) {
   return dateNum * 10 + diffNum;
 }
 
-/* ── Tek üretim denemesi ── */
-function _tryGenerate(difficulty, rng) {
-  const r = rng || Math.random;
-  const { min, max } = DIFF_CONFIG[difficulty];
+/* Havuzdan `size` adet asal seç (tekrar mümkün) */
+function _pickNums(pool, size, r) {
+  return Array.from({ length: size }, () => pool[Math.floor(r() * pool.length)]);
+}
+
+/*
+ * Temel üretici:
+ * 1. Her raf için asallardan çözüm üret → target = çarpımları
+ * 2. 2'li ve 3'lü rafların sayılarını ayrı havuzlarda karıştır
+ * 3. Karıştırılmış sayıları aynı büyüklükteki raflara dağıt
+ *
+ * Çözülebilirlik garantisi: sayılar her zaman aynı büyüklükteki
+ * raflar arasında kalır; oyuncu swap yaparak çözüme ulaşabilir.
+ */
+function _generate(difficulty, rng) {
+  const r    = rng || Math.random;
+  const pool = PRIME_POOLS[difficulty] || PRIME_POOLS.easy;
+
+  // Her boyut grubu için benzersiz target üret
   const solution = [];
+  const usedTargets2 = new Set();
+  const usedTargets3 = new Set();
 
   for (let i = 0; i < 12; i++) {
     const size = r() < 0.5 ? 2 : 3;
-    const nums = Array.from({ length: size }, () => randInt(min, max, r));
-    solution.push({ id: i, target: shelfProduct(nums), size, nums: [...nums] });
+    const usedSet = size === 2 ? usedTargets2 : usedTargets3;
+    let nums, target;
+    let tries = 0;
+    do {
+      nums   = _pickNums(pool, size, r);
+      target = nums.reduce((a, b) => a * b, 1);
+      tries++;
+    } while (usedSet.has(target) && tries < 30);
+    usedSet.add(target);
+    solution.push({ id: i, target, size, nums: [...nums] });
   }
 
   const pool2 = [], pool3 = [];
   solution.forEach(s => (s.size === 2 ? pool2 : pool3).push(...s.nums));
-
   shuffleArr(pool2, r);
   shuffleArr(pool3, r);
 
@@ -74,54 +98,35 @@ function _tryGenerate(difficulty, rng) {
   return { shelves: scrambled, solution: solutionMap };
 }
 
-/*
- * Güvenlik doğrulaması — scrambled sayı havuzunun solution ile aynı çoklu-küme
- * olduğunu kontrol eder. Bu doğruysa bulmaca her zaman çözülebilir.
- */
-function _isSolvableState(shelves, solution) {
-  const pool = {}, needed = {};
-  shelves.forEach(s => s.nums.forEach(n => pool[n] = (pool[n] || 0) + 1));
-  solution.forEach(sol => sol && sol.forEach(n => needed[n] = (needed[n] || 0) + 1));
-  for (const [n, cnt] of Object.entries(needed)) {
-    if ((pool[n] || 0) < cnt) return false;
-  }
-  for (const [n, cnt] of Object.entries(pool)) {
-    if ((needed[n] || 0) < cnt) return false;
-  }
-  return true;
+/* Başlangıçta kaç rafın kazara doğru geldiğini say */
+function _preSolvedCount(shelves) {
+  return shelves.filter(s => s.nums.reduce((a, b) => a * b, 1) === s.target).length;
 }
 
-/*
- * Ana üretici — başlangıçta hiçbir raf doğru olmayacak şekilde üretir.
- * Seeded RNG verilirse (günlük bulmaca) tek denemede döndürür.
- * Dönüş: { shelves, solution } — solution[i] = raf i için doğru sayı dizisi.
- */
-function generateGame(difficulty = 'easy', rng) {
-  if (rng) return _tryGenerate(difficulty, rng); // seeded: deterministik
-
-  let lastSolvable = null;
-  for (let attempt = 0; attempt < 500; attempt++) {
-    const result = _tryGenerate(difficulty);
-    const solvable = _isSolvableState(result.shelves, result.solution);
-    const noPreSolved = !result.shelves.some(s => shelfProduct(s.nums) === s.target);
-    if (noPreSolved && solvable) return result;
-    if (solvable) lastSolvable = result; // en azından çözülebilir olanı sakla
+/* Normal oyun üretici */
+function generateGame(difficulty = 'easy') {
+  for (let attempt = 0; attempt < 15; attempt++) {
+    const result = _generate(difficulty);
+    if (_preSolvedCount(result.shelves) === 0) return result;
   }
-  // Fallback: çözülebilirliği garanti olan en son sonucu döndür
-  return lastSolvable || _tryGenerate(difficulty);
+  return _generate(difficulty);
 }
 
 /* Günlük bulmaca üretici */
 function generateDailyGame(difficulty = 'medium') {
-  const rng = mulberry32(getDailySeed(difficulty));
-  let result = _tryGenerate(difficulty, rng);
-  let attempts = 0;
-  while (
-    (result.shelves.some(s => shelfProduct(s.nums) === s.target) ||
-     !_isSolvableState(result.shelves, result.solution)) &&
-    attempts++ < 50
-  ) {
-    result = _tryGenerate(difficulty, mulberry32(getDailySeed(difficulty) + attempts));
+  const seed = getDailySeed(difficulty);
+  for (let attempt = 0; attempt < 15; attempt++) {
+    const result = _generate(difficulty, mulberry32(seed + attempt));
+    if (_preSolvedCount(result.shelves) === 0) return result;
   }
-  return result;
+  return _generate(difficulty, mulberry32(seed));
+}
+
+/* Sonsuz mod — tek raf üret */
+function generateSingleShelfNums(difficulty) {
+  const pool   = PRIME_POOLS[difficulty] || PRIME_POOLS.easy;
+  const size   = Math.random() < 0.5 ? 2 : 3;
+  const nums   = _pickNums(pool, size, Math.random);
+  const target = nums.reduce((a, b) => a * b, 1);
+  return { target, size, nums };
 }

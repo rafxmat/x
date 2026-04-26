@@ -64,7 +64,10 @@
           <div class="settings-row-label">Ses Efektleri</div>
           <div class="settings-row-desc">Sürükleme, doğru ve kazanma sesleri</div>
         </div>
-        <button class="settings-toggle-btn" id="sound-toggle-btn" onclick="onSoundToggle()">Açık</button>
+        <div class="music-slider-wrap">
+          <input type="range" class="music-slider" id="sfx-slider" min="0" max="100" step="1" oninput="onSfxSlider(this.value)">
+          <span class="music-slider-val" id="sfx-slider-val">80</span>
+        </div>
       </div>
 
       <div class="settings-row">
@@ -100,16 +103,31 @@
       </div>
     </div>
 
-    <!-- PWA KURULUM -->
+    <!-- PWA KURULUM (Android) -->
     <div class="settings-section" id="pwa-section" style="display:none">
       <div class="settings-section-label">Uygulama</div>
-
       <div class="settings-row">
         <div class="settings-row-info">
           <div class="settings-row-label">Uygulamayı Kur</div>
           <div class="settings-row-desc">Ana ekrana ekle, internet olmadan da oyna</div>
         </div>
         <button class="settings-install-btn" id="pwa-install-btn" onclick="installPWA()">Kur</button>
+      </div>
+    </div>
+
+    <!-- PWA KURULUM (iOS / iPadOS) -->
+    <div class="settings-section" id="ios-pwa-section" style="display:none">
+      <div class="settings-section-label">Uygulama</div>
+      <div class="settings-row">
+        <div class="settings-row-info">
+          <div class="settings-row-label">Ana Ekrana Ekle</div>
+          <div class="settings-row-desc">Safari'de aşağıdaki adımları izle</div>
+        </div>
+      </div>
+      <div class="ios-pwa-steps">
+        <div class="ios-pwa-step"><span class="ios-pwa-num">1</span>Safari'de alt araç çubuğunda <strong>Paylaş</strong> simgesine <strong>↑</strong> dokun</div>
+        <div class="ios-pwa-step"><span class="ios-pwa-num">2</span>Listeden <strong>"Ana Ekrana Ekle"</strong> seçeneğini seç</div>
+        <div class="ios-pwa-step"><span class="ios-pwa-num">3</span><strong>"Ekle"</strong> butonuna dokun — uygulama hazır</div>
       </div>
     </div>
 
@@ -128,6 +146,16 @@
 <script>
 let _deferredInstall = null;
 
+// iOS/iPadOS tespiti — beforeinstallprompt'u desteklemez
+const _isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+               (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const _isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches ||
+                            window.navigator.standalone === true;
+
+if (_isIos && !_isInStandaloneMode) {
+  document.getElementById('ios-pwa-section').style.display = '';
+}
+
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   _deferredInstall = e;
@@ -137,18 +165,22 @@ window.addEventListener('beforeinstallprompt', e => {
 window.addEventListener('appinstalled', () => {
   _deferredInstall = null;
   document.getElementById('pwa-section').style.display = 'none';
+  document.getElementById('ios-pwa-section').style.display = 'none';
 });
 
-function onSoundToggle() {
-  toggleMute();
-  updateSoundBtn();
+function updateSfxSlider() {
+  const slider = document.getElementById('sfx-slider');
+  const valEl  = document.getElementById('sfx-slider-val');
+  const v = getSfxVolume();
+  if (slider) slider.value = v;
+  if (valEl)  valEl.textContent = v;
 }
 
-function updateSoundBtn() {
-  const btn = document.getElementById('sound-toggle-btn');
-  if (!btn) return;
-  btn.textContent = isMuted() ? 'Kapalı' : 'Açık';
-  btn.classList.toggle('muted', isMuted());
+function onSfxSlider(v) {
+  const vol = parseInt(v);
+  setSfxVolume(vol);
+  const valEl = document.getElementById('sfx-slider-val');
+  if (valEl) valEl.textContent = vol;
 }
 
 function onResetStats() {
@@ -203,7 +235,7 @@ function onControlToggle() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  updateSoundBtn();
+  updateSfxSlider();
   updateMusicSlider();
   updateControlBtn();
 });

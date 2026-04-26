@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="RAF×">
 <link rel="apple-touch-icon" href="icons/icon.svg">
 <script src="js/storage.js" defer></script>
-<script src="js/stats.js"></script>
+<script src="js/stats.js" defer></script>
 <script src="js/theme.js" defer></script>
 </head>
 <body>
@@ -153,8 +153,7 @@
     <div class="profile-modal-header">
       <div class="profile-modal-avatar">◈</div>
       <div class="profile-modal-title">Profil</div>
-      <button class="profile-modal-stats-btn" onclick="closeProfileModal(); openStats()">İstatistikler →</button>
-      <button class="profile-modal-close" onclick="closeProfileModal()">✕</button>
+<button class="profile-modal-close" onclick="closeProfileModal()">✕</button>
     </div>
     <div id="profile-modal-body"></div>
   </div>
@@ -262,16 +261,6 @@ function closeDailyModal() {
 }
 
 /* ════ HERO BADGES ════ */
-function buildHeroBadges() {
-  const s   = getStats();
-  const el  = document.getElementById('hero-badges');
-  if (!el || s.totalGames === 0) return;
-  const badges = [];
-  if (s.totalWins > 0)    badges.push(`${s.totalWins} kazanılan oyun`);
-  if (s.streak >= 1)      badges.push(`🔥 ${s.streak} günlük seri`);
-  if (s.totalWins >= 10)  badges.push(`🏅 Tecrübeli oyuncu`);
-  el.innerHTML = badges.map(b => `<span class="hero-badge">${b}</span>`).join('');
-}
 
 /* ════ İSTATİSTİK MODALİ ════ */
 function openStats() {
@@ -322,7 +311,7 @@ function buildStatsModal() {
     <div class="pm-ach-grid">
       ${ACHIEVEMENTS.map(a => {
         const on = unlocked.has(a.id);
-        return `<div class="pm-ach-chip${on ? ' on' : ''}" title="${a.name}">
+        return `<div class="pm-ach-chip${on ? ' on' : ''}" title="${a.name}" onclick="showAchDetail('${a.id}')">
           <span class="pm-ach-icon">${a.icon}</span>
           <span class="pm-ach-name">${a.name}</span>
         </div>`;
@@ -375,7 +364,7 @@ function buildProfileModal() {
     <div class="pm-ach-grid">
       ${ACHIEVEMENTS.map(a => {
         const on = unlocked.has(a.id);
-        return `<div class="pm-ach-chip${on ? ' on' : ''}" title="${a.name}">
+        return `<div class="pm-ach-chip${on ? ' on' : ''}" title="${a.name}" onclick="showAchDetail('${a.id}')">
           <span class="pm-ach-icon">${a.icon}</span>
           <span class="pm-ach-name">${a.name}</span>
         </div>`;
@@ -399,13 +388,47 @@ window.addEventListener('DOMContentLoaded', () => {
 
   updateDiffLinks();
   buildDailyRow();
-  buildHeroBadges();
+  (function buildHeroBadges() {
+    const s  = getStats();
+    const el = document.getElementById('hero-badges');
+    if (!el || s.streak < 1) return;
+    el.innerHTML = `<span class="hero-badge">🔥 ${s.streak} günlük seri</span>`;
+  })();
 });
 </script>
 
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
+</script>
+
+<!-- Başarım Detay Sheet -->
+<div id="ach-sheet-overlay" class="ach-sheet-overlay" onclick="if(event.target===this)closeAchSheet()">
+  <div class="ach-sheet-card">
+    <div class="ach-sheet-handle"></div>
+    <div class="ach-sheet-icon" id="ach-sheet-icon"></div>
+    <div class="ach-sheet-name" id="ach-sheet-name"></div>
+    <div class="ach-sheet-desc" id="ach-sheet-desc"></div>
+    <div class="ach-sheet-status" id="ach-sheet-status"></div>
+  </div>
+</div>
+
+<script>
+function showAchDetail(id) {
+  const a = ACHIEVEMENTS.find(x => x.id === id);
+  if (!a) return;
+  const unlocked = getUnlockedIds().has(id);
+  document.getElementById('ach-sheet-icon').textContent  = a.icon;
+  document.getElementById('ach-sheet-icon').className    = 'ach-sheet-icon' + (unlocked ? '' : ' locked');
+  document.getElementById('ach-sheet-name').textContent  = a.name;
+  document.getElementById('ach-sheet-desc').textContent  = a.desc;
+  document.getElementById('ach-sheet-status').textContent = unlocked ? '✓ Kazanıldı' : 'Henüz kazanılmadı';
+  document.getElementById('ach-sheet-status').className   = 'ach-sheet-status ' + (unlocked ? 'unlocked' : 'locked');
+  document.getElementById('ach-sheet-overlay').classList.add('show');
+}
+function closeAchSheet() {
+  document.getElementById('ach-sheet-overlay').classList.remove('show');
 }
 </script>
 
