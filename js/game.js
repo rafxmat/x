@@ -18,6 +18,7 @@ let _stuckToastShown = false;
 let nextShelfId  = 12;
 let hintsUsed    = 0;
 let _solution    = [];
+let _hintCache   = null; // { candidateId, srcId, srcIdx } — her hamlede sıfırlanır
 const HINTS_MAX  = 3;
 
 const enteringIds   = new Set();
@@ -420,9 +421,7 @@ function updateHintButton() {
   btn.classList.toggle('depleted', remaining === 0);
 }
 
-function useHint() {
-  if (gameOver || hintsUsed >= HINTS_MAX) return;
-
+function computeHintData() {
   // 1) Eksik sayısı olan açık bir raf bul
   const candidate = shelves.find(shelf => {
     if (shelf.locked || completingIds.has(shelf.id)) return false;
@@ -432,7 +431,7 @@ function useHint() {
     const tgt = {}; target.forEach(n => tgt[n] = (tgt[n] || 0) + 1);
     return Object.keys(tgt).some(v => (cur[v] || 0) < tgt[v]);
   });
-  if (!candidate) return;
+  if (!candidate) return null;
 
   // 2) Bu raf için eksik bir değer seç
   const target = _solution[candidate.id];
@@ -442,7 +441,7 @@ function useHint() {
   for (const v of Object.keys(tgt)) {
     if ((cur[v] || 0) < tgt[v]) { missingVal = parseInt(v); break; }
   }
-  if (missingVal === null) return;
+  if (missingVal === null) return null;
 
   // 3) Bu değeri başka bir kilitsiz rafta bul (öncelik: orada fazlalık olan)
   let srcId = null, srcIdx = null;
@@ -463,14 +462,26 @@ function useHint() {
       if (idx !== -1) { srcId = s.id; srcIdx = idx; break; }
     }
   }
-  if (srcId === null) return;
+  if (srcId === null) return null;
+
+  return { candidateId: candidate.id, srcId, srcIdx };
+}
+
+function useHint() {
+  if (gameOver || hintsUsed >= HINTS_MAX) return;
+
+  if (!_hintCache) _hintCache = computeHintData();
+  if (!_hintCache) return;
+
+  const { candidateId, srcId, srcIdx } = _hintCache;
+  _hintCache = null; // bir sonraki hint için yeniden hesaplanacak
 
   hintsUsed++;
   updateHintButton();
 
   // 4) Vurgula: kaynak chip + hedef raf
   const srcShelfEl = document.querySelector(`.shelf[data-shelf-id="${srcId}"]`);
-  const tgtShelfEl = document.querySelector(`.shelf[data-shelf-id="${candidate.id}"]`);
+  const tgtShelfEl = document.querySelector(`.shelf[data-shelf-id="${candidateId}"]`);
   const srcChip    = srcShelfEl?.querySelectorAll('.num-chip')[srcIdx];
 
   if (srcChip)    srcChip.classList.add('hint-glow');
@@ -651,6 +662,7 @@ function reshuffleNums() {
   }
 
   moves++;
+  _hintCache = null;
   render();
 }
 
@@ -672,204 +684,14 @@ function dropOnShelf(toId) {
   const val = sourceShelf.nums.splice(numIdx, 1)[0];
   targetShelf.nums.push(val);
   moves++;
+  _hintCache = null;
   clearDragState();
 
-  const p = targetShelf.nums.reduce((a, b) => a * b, 1);
-  if (p !== targetShelf.target) sndWrong();
+  const p = product(targetShelf.nums);
+  if (p !== null && p !== targetShelf.target) sndWrong();
 
   render();
   checkDeadlock();
-}
-
-/* ── Metin paylaşımı ── */
-function shareResult() {
-  const isPes    = pesShelfIds.size > 0;
-  const stars    = isPes ? 0 : finalStars();
-  const diffName = { easy: 'Kolay', medium: 'Orta', hard: 'Zor' }[difficulty];
-  const modeName = { normal: 'Normal', timed: 'Süre Sınırı', endless: 'Sonsuz' }[gameMode];
-  const daily    = isDailyMode ? '\n📅 Günlük Bulmaca' : '';
-  const pesTag   = isPes ? ' (pes)' : '';
-  const text = `RAF× Çarpım Bulmacası${daily}\n${modeName} · ${diffName}${pesTag}\nSüre: ${formatTime(timerSec)} · Hamle: ${moves}\n${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}`;
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.getElementById('share-btn');
-    const orig = btn.textContent;
-    btn.textContent = '✓ Kopyalandı';
-    setTimeout(() => btn.textContent = orig, 1800);
-  }).catch(() => {
-    const btn = document.getElementById('share-btn');
-    const orig = btn.textContent;
-    btn.textContent = '✗ Kopyalanamadı';
-    setTimeout(() => btn.textContent = orig, 1800);
-  });
-}
-
-/* ── roundRect polyfill (Safari <15.4, Chrome <99, Firefox <112) ── */
-if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
-  CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
-    let tl, tr, br, bl;
-    if (Array.isArray(r)) {
-      const n = r.length;
-      if      (n === 1) { tl = tr = br = bl = r[0]; }
-      else if (n === 2) { tl = br = r[0]; tr = bl = r[1]; }
-      else if (n === 3) { tl = r[0]; tr = bl = r[1]; br = r[2]; }
-      else              { tl = r[0]; tr = r[1]; br = r[2]; bl = r[3]; }
-    } else {
-      tl = tr = br = bl = r || 0;
-    }
-    this.beginPath();
-    this.moveTo(x + tl, y);
-    this.lineTo(x + w - tr, y);
-    this.arcTo(x + w, y,     x + w, y + tr,     tr);
-    this.lineTo(x + w, y + h - br);
-    this.arcTo(x + w, y + h, x + w - br, y + h, br);
-    this.lineTo(x + bl, y + h);
-    this.arcTo(x,     y + h, x, y + h - bl,     bl);
-    this.lineTo(x, y + tl);
-    this.arcTo(x,     y,     x + tl, y,          tl);
-    this.closePath();
-    return this;
-  };
-}
-
-/* ── Görsel kart indir ── */
-function downloadCard() {
-  const isPes    = pesShelfIds.size > 0;
-  const stars    = isPes ? 0 : finalStars();
-  const diffName = { easy: 'Kolay', medium: 'Orta', hard: 'Zor' }[difficulty];
-  const modeName = { normal: 'Normal', timed: 'Süre Sınırı', endless: 'Sonsuz' }[gameMode];
-  const dark     = document.documentElement.dataset.theme === 'dark';
-  const today    = new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
-
-  const W = 480, H = 280, DPR = 2;
-  const cv = document.createElement('canvas');
-  cv.width  = W * DPR;
-  cv.height = H * DPR;
-  const cx = cv.getContext('2d');
-  cx.scale(DPR, DPR);
-
-  // ── Renkler
-  const bg      = dark ? '#0c0b09' : '#f2ede4';
-  const panel   = dark ? '#131210' : '#e9e3d9';
-  const border  = dark ? '#252219' : '#cfc8bc';
-  const textCol = dark ? '#ede7d9' : '#1a1714';
-  const mutedC  = dark ? '#7a7060' : '#6a6460';
-  const accent  = dark ? '#d4f03c' : '#5c8800';
-  const gold    = '#f5a623';
-
-  // ── Arkaplan + kenarlık
-  cx.fillStyle = bg;
-  cx.roundRect(0, 0, W, H, 14);
-  cx.fill();
-  cx.strokeStyle = border;
-  cx.lineWidth   = 1.5;
-  cx.roundRect(0.75, 0.75, W - 1.5, H - 1.5, 13.5);
-  cx.stroke();
-
-  // ── Üst panel şeridi
-  cx.fillStyle = panel;
-  cx.roundRect(0, 0, W, 68, [13, 13, 0, 0]);
-  cx.fill();
-  cx.strokeStyle = border;
-  cx.lineWidth   = 1;
-  cx.beginPath();
-  cx.moveTo(0, 68); cx.lineTo(W, 68);
-  cx.stroke();
-
-  // ── Logo
-  cx.font      = '800 32px Outfit, sans-serif';
-  cx.fillStyle = textCol;
-  cx.fillText('RAF', 24, 46);
-  cx.fillStyle = accent;
-  cx.fillText('×', 88, 46);
-
-  // ── Başlık sağ
-  cx.font      = '10px JetBrains Mono, monospace';
-  cx.fillStyle = mutedC;
-  cx.textAlign = 'right';
-  cx.fillText('ÇARPIM BULMACASI', W - 24, 34);
-  cx.fillText(today, W - 24, 54);
-  cx.textAlign = 'left';
-
-  // ── Yıldızlar
-  cx.font      = '30px serif';
-  cx.fillStyle = gold;
-  let sx = 24;
-  for (let i = 0; i < 3; i++) {
-    cx.fillStyle = i < stars ? gold : (dark ? '#282828' : '#dde5f5');
-    cx.fillText('★', sx, 112);
-    sx += 34;
-  }
-
-  // ── İstatistikler
-  const statBoxW = 120, statBoxH = 66, statY = 134, gap = 12;
-  const labels = ['Süre', 'Hamle', 'Zorluk'];
-  const vals   = [formatTime(timerSec), String(moves), diffName];
-  labels.forEach((lbl, i) => {
-    const x = 24 + i * (statBoxW + gap);
-    cx.fillStyle = panel;
-    cx.roundRect(x, statY, statBoxW, statBoxH, 8);
-    cx.fill();
-    cx.strokeStyle = border;
-    cx.lineWidth   = 1;
-    cx.roundRect(x + 0.5, statY + 0.5, statBoxW - 1, statBoxH - 1, 7.5);
-    cx.stroke();
-
-    cx.font      = 'bold 18px JetBrains Mono, monospace';
-    cx.fillStyle = gold;
-    cx.textAlign = 'center';
-    cx.fillText(vals[i], x + statBoxW / 2, statY + 34);
-
-    cx.font      = '8px JetBrains Mono, monospace';
-    cx.fillStyle = mutedC;
-    cx.fillText(lbl.toUpperCase(), x + statBoxW / 2, statY + 54);
-    cx.textAlign = 'left';
-  });
-
-  // ── Mod rozeti
-  cx.fillStyle = accent + '22';
-  cx.roundRect(24, 216, 100, 22, 11);
-  cx.fill();
-  cx.strokeStyle = accent + '44';
-  cx.lineWidth   = 1;
-  cx.roundRect(24.5, 216.5, 99, 21, 10.5);
-  cx.stroke();
-  cx.font      = 'bold 9px JetBrains Mono, monospace';
-  cx.fillStyle = accent;
-  cx.textAlign = 'center';
-  cx.fillText(modeName.toUpperCase(), 74, 231);
-  cx.textAlign = 'left';
-
-  if (isDailyMode) {
-    cx.fillStyle = '#f59e0b22';
-    cx.roundRect(136, 216, 90, 22, 11);
-    cx.fill();
-    cx.strokeStyle = '#f59e0b44';
-    cx.lineWidth   = 1;
-    cx.roundRect(136.5, 216.5, 89, 21, 10.5);
-    cx.stroke();
-    cx.font      = 'bold 9px JetBrains Mono, monospace';
-    cx.fillStyle = '#f59e0b';
-    cx.textAlign = 'center';
-    cx.fillText('GÜNLÜK', 181, 231);
-    cx.textAlign = 'left';
-  }
-
-  // ── Alt branding
-  cx.font      = '9px JetBrains Mono, monospace';
-  cx.fillStyle = mutedC;
-  cx.textAlign = 'right';
-  cx.fillText('RAF× Çarpım Bulmacası', W - 24, H - 16);
-  cx.textAlign = 'left';
-
-  // ── İndir
-  cv.toBlob(blob => {
-    const url  = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.download = `rafx-${new Date().toISOString().slice(0, 10)}.png`;
-    link.href = url;
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  });
 }
 
 /* ── Başarım toastları ── */
@@ -909,12 +731,13 @@ function showNextToast() {
 
 /* ── Yeni oyun ── */
 function initGame() {
+  setDropHandler(dropOnShelf);
   document.getElementById('win-screen').classList.remove('show');
   document.getElementById('fail-screen').classList.remove('show');
   stopConfetti();
 
   moves = 0; gameOver = false; prevCorrect = 0; prevMoves = 0;
-  endlessScore = 0; nextShelfId = 12; hintsUsed = 0;
+  endlessScore = 0; nextShelfId = 12; hintsUsed = 0; _hintCache = null;
   _bestMisplaced = Infinity; _movesSinceBest = 0; _stuckToastShown = false;
   document.querySelector('.stuck-toast')?.remove();
   enteringIds.clear();

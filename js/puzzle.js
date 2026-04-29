@@ -105,11 +105,15 @@ function _preSolvedCount(shelves) {
 
 /* Normal oyun üretici */
 function generateGame(difficulty = 'easy') {
+  let best = null;
   for (let attempt = 0; attempt < 15; attempt++) {
     const result = _generate(difficulty);
     if (_preSolvedCount(result.shelves) === 0) return result;
+    if (!best || _preSolvedCount(result.shelves) < _preSolvedCount(best.shelves)) {
+      best = result;
+    }
   }
-  return _generate(difficulty);
+  return best;
 }
 
 /* Günlük bulmaca üretici */

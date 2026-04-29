@@ -28,7 +28,7 @@ function tone(freq, type, dur, vol = 0.12) {
     g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
     o.start(c.currentTime);
     o.stop(c.currentTime + dur);
-  } catch(e) {}
+  } catch(e) { console.warn('RAF× ses hatası:', e); }
 }
 
 /* ── Ambient müzik ── */

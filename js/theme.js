@@ -3,7 +3,11 @@
 const THEME_KEY = 'rafx_theme';
 
 /* ── Tema ── */
-function applyTheme(dark) {
+function applyTheme(dark, animate = false) {
+  if (animate) {
+    document.documentElement.classList.add('theme-transitioning');
+    setTimeout(() => document.documentElement.classList.remove('theme-transitioning'), 400);
+  }
   document.documentElement.dataset.theme = dark ? 'dark' : 'light';
   const toggle = document.getElementById('theme-toggle');
   if (toggle) toggle.checked = dark;
@@ -18,7 +22,7 @@ function initTheme() {
 function onThemeToggle(e) {
   const dark = e.target.checked;
   localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light');
-  applyTheme(dark);
+  applyTheme(dark, true);
 }
 
 /* ── Başlatma ── */

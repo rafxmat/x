@@ -3,11 +3,13 @@
 let _dragState     = null;
 let _ghostEl       = null;
 let _clickSelected = null; // { fromShelf, numIdx } — tıkla modu için
+let _dropHandler   = null; // game.js tarafından initGame'de set edilir
 
-function getDragState()      { return _dragState; }
-function clearDragState()    { _dragState = null; }
-function getClickSelected()  { return _clickSelected; }
-function clearClickSelected(){ _clickSelected = null; }
+function getDragState()        { return _dragState; }
+function clearDragState()      { _dragState = null; }
+function getClickSelected()    { return _clickSelected; }
+function clearClickSelected()  { _clickSelected = null; }
+function setDropHandler(fn)    { _dropHandler = fn; }
 
 /* ── Tıkla: chip seç ── */
 function onChipClick(e) {
@@ -37,9 +39,9 @@ function onShelfClickForMove(shelfId) {
 
   if (fromShelf === shelfId) { render(true); return; }
 
-  // Mevcut dropOnShelf mekanizmasını kullan
+  // game.js'in dropOnShelf'ini kayıtlı handler üzerinden çağır
   _dragState = { fromShelf, numIdx };
-  dropOnShelf(shelfId);
+  _dropHandler?.(shelfId);
 }
 
 /* ── Mouse ── */
@@ -156,7 +158,7 @@ function endDrag(x, y) {
   const target = els.map(el => el.closest?.('.shelf')).find(Boolean) || null;
 
   if (target && _dragState && !target.classList.contains('locked')) {
-    dropOnShelf(parseInt(target.dataset.shelfId));
+    _dropHandler?.(parseInt(target.dataset.shelfId));
   } else {
     _dragState = null;
     render(true);

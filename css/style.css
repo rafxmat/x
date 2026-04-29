@@ -57,8 +57,8 @@
   --chip-border: #cfc8bc;
   --chip-hover:  #dfd8cc;
 
-  --green:  #1a9640;
-  --red:    #d42020;
+  --green:  #157832; /* #1a9640'tan koyu — WCAG AA 4.5:1 için */
+  --red:    #c01a1a; /* #d42020'dan koyu — WCAG AA 4.5:1 için */
   --gold:   #b87800;
   --accent: #5c8800;
 
@@ -84,6 +84,18 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   transition: background .3s, color .3s;
+}
+
+/* Tema geçiş animasyonu */
+.theme-transitioning,
+.theme-transitioning *,
+.theme-transitioning *::before,
+.theme-transitioning *::after {
+  transition:
+    background-color .35s ease,
+    border-color .35s ease,
+    color .35s ease,
+    box-shadow .35s ease !important;
 }
 
 /* Grain — koyu temada */
@@ -1796,10 +1808,6 @@ body:has(.game-page) {
 }
 .stats-btn:hover { border-color: var(--accent); color: var(--accent); }
 .stats-btn svg   { width: 14px; height: 14px; }
-
-@media (max-width: 768px) {
-  .daily-cards { grid-template-columns: 1fr; }
-}
 
 /* ════════════════════════════════════════
    AYARLAR SAYFASI

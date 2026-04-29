@@ -1,4 +1,4 @@
-const CACHE = 'rafx-v2';
+const CACHE = 'rafx-v3';
 const ASSETS = [
   './index.html',
   './game.html',
@@ -32,6 +32,25 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   // Sadece GET isteklerini önbellekle
   if (e.request.method !== 'GET') return;
+
+  const url = new URL(e.request.url);
+
+  // Google Fonts: ağdan çek, önbelleğe kaydet (offline için)
+  if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
+    e.respondWith(
+      caches.open(CACHE).then(cache =>
+        cache.match(e.request).then(cached => {
+          if (cached) return cached;
+          return fetch(e.request).then(response => {
+            if (response.ok) cache.put(e.request, response.clone());
+            return response;
+          }).catch(() => cached || new Response('', { status: 503 }));
+        })
+      )
+    );
+    return;
+  }
+
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request))
   );
