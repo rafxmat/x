@@ -6,9 +6,16 @@ const THEME_KEY = 'rafx_theme';
 function applyTheme(dark, animate = false) {
   if (animate) {
     document.documentElement.classList.add('theme-transitioning');
-    setTimeout(() => document.documentElement.classList.remove('theme-transitioning'), 400);
+    // double-rAF: transition class'ı önce hesaplansın, sonra tema değişsin
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      });
+    });
+    setTimeout(() => document.documentElement.classList.remove('theme-transitioning'), 600);
+  } else {
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light';
   }
-  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
   const toggle = document.getElementById('theme-toggle');
   if (toggle) toggle.checked = dark;
 }

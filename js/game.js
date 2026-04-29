@@ -517,8 +517,9 @@ function showWin() {
   document.getElementById('win-time').textContent  = timeStr;
   document.getElementById('win-moves').textContent = moves;
   document.getElementById('win-diff').textContent  = diffName;
-  document.getElementById('win-stars').innerHTML   =
-    '★'.repeat(stars) + `<span style="opacity:.18">★</span>`.repeat(3 - stars);
+  document.getElementById('win-stars').innerHTML = [0,1,2].map(i =>
+    `<span class="win-star${i < stars ? ' win-star-earned' : ' win-star-empty'}" style="animation-delay:${i * 0.13}s">★</span>`
+  ).join('');
 
   const rec = document.getElementById('win-record');
   rec.style.display = isRecord ? 'block' : 'none';
