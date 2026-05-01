@@ -127,8 +127,13 @@ a { color: inherit; text-decoration: none; }
 .btn-primary {
   background: var(--accent); color: #0c0b09;
   border-color: var(--accent);
+  box-shadow: 0 4px 16px rgba(212,240,60,.2);
 }
-.btn-primary:hover { opacity: .85; }
+.btn-primary:hover {
+  opacity: .88;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(212,240,60,.3);
+}
 
 .btn-ghost {
   background: transparent;
@@ -169,9 +174,15 @@ a { color: inherit; text-decoration: none; }
   color: #0c0b09;
   cursor: pointer;
   flex-shrink: 0;
-  transition: opacity .15s;
+  transition: opacity .15s, transform .15s, box-shadow .15s;
+  box-shadow: 0 4px 12px rgba(212,240,60,.25);
+  margin-left: 8px;
 }
-.nav-profile-icon-btn:hover { opacity: .82; }
+.nav-profile-icon-btn:hover {
+  opacity: .88;
+  transform: scale(1.06);
+  box-shadow: 0 6px 18px rgba(212,240,60,.35);
+}
 
 /* Eski profil kartı — kullanılmıyor ama class bozulmasın */
 .nav-profile { display: none; }
@@ -376,7 +387,8 @@ a { color: inherit; text-decoration: none; }
 
 /* ── Nav Sağ ── */
 .nav-right {
-  display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
+  display: flex; flex-direction: row; align-items: center; gap: 10px;
+  margin-right: 8px;
 }
 
 .nav-brand {
@@ -391,20 +403,23 @@ a { color: inherit; text-decoration: none; }
 }
 
 .nav-btn {
-  display: flex; align-items: center; gap: 5px;
-  padding: 6px 12px;
+  display: flex; align-items: center; justify-content: center;
   border: 1px solid var(--border2);
   border-radius: var(--r);
   background: transparent;
   color: var(--muted3);
-  font-family: var(--mono); font-size: 0.63rem;
-  text-transform: uppercase; letter-spacing: 0.8px;
   cursor: pointer;
-  transition: border-color .15s, color .15s;
+  transition: border-color .15s, color .15s, background .15s;
   white-space: nowrap;
 }
 .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
-.nav-btn svg   { width: 13px; height: 13px; flex-shrink: 0; }
+.nav-btn svg   { flex-shrink: 0; }
+.nav-btn-icon {
+  width: 40px; height: 40px; padding: 0;
+  border-radius: 50%;
+  border-color: var(--border2);
+}
+.nav-btn-icon svg { width: 18px; height: 18px; }
 
 /* ── Hero ── */
 .hero {
@@ -417,6 +432,7 @@ a { color: inherit; text-decoration: none; }
   font-size: clamp(4rem, 11vw, 7rem);
   font-weight: 800; letter-spacing: -6px; line-height: 0.95;
   animation: logoIn .6s cubic-bezier(.34,1.56,.64,1) both;
+  text-shadow: 0 0 120px rgba(212,240,60,.18);
 }
 .hero-logo .x { color: var(--accent); }
 
@@ -471,26 +487,33 @@ a { color: inherit; text-decoration: none; }
 
 /* Mod sekmeleri */
 .mode-tabs {
-  display: flex;
-  border-bottom: 1px solid var(--border);
-  gap: 0;
-  margin-bottom: 14px;
+  display: inline-flex;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 4px;
+  gap: 3px;
+  margin-bottom: 16px;
 }
 
 .mode-tab {
-  padding: 10px 18px;
-  border: none; border-bottom: 2px solid transparent;
+  padding: 8px 18px;
+  border: none;
+  border-radius: calc(var(--r) - 2px);
   background: transparent;
   color: var(--muted3);
   font-family: var(--mono); font-size: 0.65rem;
   text-transform: uppercase; letter-spacing: 1px;
   cursor: pointer;
-  transition: color .15s, border-color .15s;
-  margin-bottom: -1px;
+  transition: color .15s, background .15s;
   white-space: nowrap;
 }
 .mode-tab:hover  { color: var(--text); }
-.mode-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.mode-tab.active {
+  background: var(--accent);
+  color: #0c0b09;
+  font-weight: 700;
+}
 
 .mode-hint {
   font-family: var(--mono); font-size: 0.64rem;
@@ -502,9 +525,7 @@ a { color: inherit; text-decoration: none; }
 
 /* Zorluk kartları */
 .diff-cards {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
-  border: 1px solid var(--border);
-  background: var(--border);
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
 }
 
 .diff-card {
@@ -512,13 +533,20 @@ a { color: inherit; text-decoration: none; }
   overflow: hidden;
   cursor: pointer;
   display: flex; align-items: stretch;
-  transition: background .15s;
+  transition: transform .2s cubic-bezier(.2,.8,.4,1), box-shadow .2s, background .15s;
   text-decoration: none; color: inherit;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
 }
-.diff-card:hover { background: var(--panel2); }
+.diff-card:hover {
+  background: var(--panel2);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0,0,0,.55);
+  border-color: var(--border2);
+}
 
 .diff-card-stripe {
-  width: 3px; flex-shrink: 0;
+  width: 4px; flex-shrink: 0;
 }
 .easy   .diff-card-stripe { background: var(--green); }
 .medium .diff-card-stripe { background: var(--gold); }
@@ -527,6 +555,11 @@ a { color: inherit; text-decoration: none; }
 .diff-card-body {
   flex: 1; padding: 18px 16px;
   display: flex; flex-direction: column; gap: 5px;
+}
+
+.diff-card-icon {
+  font-size: 1.6rem; line-height: 1;
+  margin-bottom: 6px;
 }
 
 .diff-card-top {
@@ -559,12 +592,18 @@ a { color: inherit; text-decoration: none; }
 
 .diff-card-arrow {
   display: flex; align-items: center; justify-content: center;
-  width: 32px; flex-shrink: 0;
-  color: var(--muted3);
-  font-size: 0.9rem;
-  transition: color .15s;
+  width: 36px; flex-shrink: 0;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity .2s, transform .2s, color .2s;
 }
-.diff-card:hover .diff-card-arrow { color: var(--accent); }
+.easy   .diff-card-arrow { color: var(--green); }
+.medium .diff-card-arrow { color: var(--gold); }
+.hard   .diff-card-arrow { color: var(--red); }
+.diff-card:hover .diff-card-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
 
 /* ════════════════════════════════════════
    GÜNLÜK BULMACA — SATIR + MODAL
@@ -603,14 +642,26 @@ a { color: inherit; text-decoration: none; }
   width: 100%; max-width: 960px;
   background: var(--panel);
   border: 1px solid var(--border2);
-  border-left: 3px solid var(--gold);
   border-radius: var(--r);
-  padding: 14px 20px;
+  padding: 16px 20px;
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
   cursor: pointer;
-  transition: background .15s, border-color .15s;
+  transition: transform .2s cubic-bezier(.2,.8,.4,1), box-shadow .2s, background .15s;
+  position: relative;
+  overflow: hidden;
 }
-.daily-row:hover { background: var(--panel2); }
+.daily-row::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--gold), color-mix(in srgb, var(--gold) 50%, transparent));
+}
+.daily-row:hover {
+  background: var(--panel2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,.4);
+}
 
 .daily-row-left { display: flex; align-items: center; gap: 12px; }
 .daily-row-icon { font-size: 1.2rem; line-height: 1; }
@@ -1000,11 +1051,14 @@ body:has(.game-page) {
 }
 .progress-text strong { color: var(--text); font-weight: 700; }
 .progress-track {
-  height: 2px; background: var(--border2); overflow: hidden;
+  height: 3px; background: var(--border2); overflow: hidden;
+  border-radius: 2px;
 }
 .progress-bar {
   height: 100%; background: var(--accent);
   transition: width .4s ease;
+  box-shadow: 0 0 8px rgba(212,240,60,.45);
+  border-radius: 2px;
 }
 
 /* ── Oyun Alanı ── */
@@ -1019,13 +1073,14 @@ body:has(.game-page) {
 .shelf {
   background: var(--panel); border: 1px solid var(--border);
   border-radius: var(--r); padding: 18px 16px 14px;
-  transition: border-color .2s, background .2s;
+  transition: border-color .2s, background .2s, box-shadow .2s;
   min-height: 130px;
   display: flex; flex-direction: column; gap: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
 }
-.shelf.correct   { border-color: var(--green); border-left-width: 3px; }
+.shelf.correct   { border-color: var(--green); border-left-width: 3px; box-shadow: 0 2px 12px rgba(77,250,122,.1); }
 .shelf.wrong     { border-color: var(--red); opacity: .7; }
-.shelf.drag-over { border-color: var(--accent); }
+.shelf.drag-over { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(212,240,60,.2); }
 .shelf.locked .num-chip { cursor: default; pointer-events: none; }
 
 .shelf-top { display: flex; justify-content: space-between; align-items: center; }
@@ -1161,7 +1216,8 @@ body:has(.game-page) {
   padding: 36px 40px;
   text-align: center; max-width: 380px; width: 92%;
   display: flex; flex-direction: column; align-items: center; gap: 18px;
-  animation: winIn .3s ease; box-shadow: var(--shadow-lg);
+  animation: winIn .3s ease;
+  box-shadow: 0 20px 60px rgba(0,0,0,.8), 0 0 80px rgba(212,240,60,.07);
 }
 @keyframes winIn {
   from { transform: translateY(20px); opacity: 0; }
@@ -1457,7 +1513,8 @@ body:has(.game-page) {
   .hero { padding: 28px 0 0; align-items: flex-start; }
   .hero-logo { font-size: clamp(3.2rem, 16vw, 5rem); }
 
-  .mode-tab { font-size: 0.6rem; padding: 8px 10px; }
+  .mode-tabs { padding: 3px; }
+  .mode-tab { font-size: 0.6rem; padding: 7px 10px; }
 
   .diff-cards { grid-template-columns: 1fr; }
   .diff-card-desc { display: none; }
@@ -1732,6 +1789,123 @@ body:has(.game-page) {
   border: 1px solid var(--gold);
   border-radius: var(--r); padding: 3px 12px;
   text-transform: uppercase; letter-spacing: 1.5px;
+}
+
+/* ════════════════════════════════════════
+   PROFESYONEL İYİLEŞTİRMELER
+════════════════════════════════════════ */
+
+
+/* Landing — subtle arka plan deseni */
+.landing {
+  background-image:
+    radial-gradient(ellipse 60% 40% at 80% 10%, rgba(212,240,60,.04) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 30% at 20% 80%, rgba(212,240,60,.03) 0%, transparent 60%);
+}
+
+/* Hero tagline — biraz daha belirgin */
+.hero-tagline {
+  opacity: .75;
+  letter-spacing: 1.5px;
+}
+
+/* Hero — giriş animasyonu güçlendirildi */
+.hero {
+  animation: heroFadeUp .5s cubic-bezier(.2,.8,.4,1) both;
+  animation-delay: .05s;
+}
+@keyframes heroFadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Play section — yumuşak giriş */
+.play-section {
+  animation: heroFadeUp .5s cubic-bezier(.2,.8,.4,1) both;
+  animation-delay: .12s;
+}
+
+
+/* Diff card body — biraz daha nefes alsın */
+.diff-card-body {
+  padding: 20px 16px;
+}
+
+/* Diff card record — subtle badge görünümü */
+.diff-card-record.has-record {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: color-mix(in srgb, var(--gold) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold) 25%, transparent);
+  border-radius: var(--r-sm);
+  padding: 3px 8px;
+  color: var(--gold);
+  font-size: 0.58rem;
+}
+
+/* Daily row — soldan padding (pseudo ile çakışmasın) */
+.daily-row-left {
+  padding-left: 6px;
+}
+
+/* Stats modal ve profil modal — backdrop blur */
+#stats-modal,
+#profile-modal,
+#daily-modal {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* Modal kartları — daha belirgin shadow */
+.stats-card,
+.daily-modal-card {
+  box-shadow: 0 24px 80px rgba(0,0,0,.7);
+}
+
+/* Nav btn — hover'da accent glow */
+.nav-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+/* Win/fail stat grid — daha belirgin */
+.win-stats,
+.fail-stats {
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+
+/* Footer — biraz daha zarif */
+.landing-footer {
+  opacity: .45;
+  letter-spacing: 4px;
+}
+
+/* Back link — game page */
+.back-link {
+  background: var(--panel);
+}
+.back-link:hover {
+  background: var(--panel2);
+  border-color: var(--text);
+}
+
+/* Hint btn — hafif glow */
+.hint-btn:not(:disabled) {
+  box-shadow: 0 0 12px rgba(245,166,35,.1);
+}
+
+/* Chip hover — elevation */
+.num-chip:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,.4);
+}
+
+/* Mode badge — aynı diff badge stili */
+.mode-badge {
+  background: color-mix(in srgb, var(--muted3) 8%, transparent);
 }
 
 /* Stats buton */
