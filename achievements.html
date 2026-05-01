@@ -17,7 +17,7 @@
 <div class="settings-page">
 
   <header class="settings-header">
-    <a href="javascript:history.back()" class="back-link">← geri</a>
+    <a href="profile.html" class="back-link">← geri</a>
     <div class="game-logo">RAF<span class="x">×</span></div>
     <span class="settings-page-title">Başarımlar</span>
     <div class="header-spacer"></div>
@@ -74,9 +74,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('pp-ach-count').textContent = `${unlocked.size} / ${ACHIEVEMENTS.length}`;
 
+  let unlockedIdx = 0;
   document.getElementById('pp-ach-grid').innerHTML = ACHIEVEMENTS.map(a => {
     const on = unlocked.has(a.id);
-    return `<div class="pp-ach-chip${on ? ' on' : ''}" title="${a.desc}" onclick="showAchDetail('${a.id}')">
+    const idx = on ? unlockedIdx++ : 0;
+    return `<div class="pp-ach-chip${on ? ' on' : ''}" ${on ? `style="--i:${idx}"` : ''} title="${a.desc}" onclick="showAchDetail('${a.id}')">
       <span class="pp-ach-icon">${a.icon}</span>
       <span class="pp-ach-name">${a.name}</span>
     </div>`;

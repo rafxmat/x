@@ -416,7 +416,7 @@ function updateHintButton() {
   const btn = document.getElementById('hint-btn');
   if (!btn) return;
   const remaining = HINTS_MAX - hintsUsed;
-  btn.innerHTML = `💡 ipucu <span class="hint-count">${remaining}</span>`;
+  btn.innerHTML = `💡 <span class="hint-count">${remaining}</span>`;
   btn.disabled = remaining === 0 || gameOver;
   btn.classList.toggle('depleted', remaining === 0);
 }

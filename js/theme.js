@@ -42,3 +42,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // bfcache'den geri dönüldüğünde temayı yeniden uygula (sayfa yenilenmez)
 window.addEventListener('pageshow', initTheme);
+
+/* ── Sayfa geçiş animasyonu ── */
+document.addEventListener('click', e => {
+  const a = e.target.closest('a[href]');
+  if (!a) return;
+  const href = a.getAttribute('href');
+  // Sadece aynı origin'deki .html sayfaları — modal/hash/external hariç
+  if (!href || href.startsWith('#') || href.startsWith('http') || href.startsWith('javascript')) return;
+  e.preventDefault();
+  document.body.classList.add('page-exit');
+  setTimeout(() => { window.location.href = href; }, 230);
+});
