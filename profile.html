@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<script>(function(){var t=localStorage.getItem('rafx_theme');document.documentElement.dataset.theme=(t==='light')?'light':'dark';})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAF× — Profil</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#d4f03c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="RAF×">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+</head>
+<body>
+
+<div class="settings-page">
+
+  <header class="settings-header">
+    <a href="javascript:history.back()" class="back-link">← geri</a>
+    <div class="game-logo">RAF<span class="x">×</span></div>
+    <span class="settings-page-title">Profil</span>
+    <div class="header-spacer"></div>
+  </header>
+
+  <div class="profile-body">
+
+    <!-- ── Hero ── -->
+    <div class="pp-hero" id="pp-hero"></div>
+
+    <!-- ── Navigasyon ── -->
+    <div class="pp-nav-list">
+
+      <a href="stats.html" class="pp-nav-row">
+        <div class="pp-nav-icon">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="12" width="3" height="6" rx="1"/>
+            <rect x="8.5" y="7" width="3" height="11" rx="1"/>
+            <rect x="15" y="3" width="3" height="15" rx="1"/>
+          </svg>
+        </div>
+        <div class="pp-nav-info">
+          <div class="pp-nav-title">İstatistikler</div>
+          <div class="pp-nav-sub">Rekorlar, süreler, zorluk dağılımı</div>
+        </div>
+        <svg class="pp-nav-arrow" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="7 4 13 10 7 16"/>
+        </svg>
+      </a>
+
+      <a href="achievements.html" class="pp-nav-row">
+        <div class="pp-nav-icon">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 2l2.4 4.8 5.3.8-3.85 3.75.91 5.3L10 14.1l-4.76 2.55.91-5.3L2.3 7.6l5.3-.8z"/>
+          </svg>
+        </div>
+        <div class="pp-nav-info">
+          <div class="pp-nav-title">Başarımlar</div>
+          <div class="pp-nav-sub" id="pp-ach-sub">Kazanılan rozetler</div>
+        </div>
+        <svg class="pp-nav-arrow" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="7 4 13 10 7 16"/>
+        </svg>
+      </a>
+
+    </div>
+
+  </div>
+</div>
+
+<script src="js/storage.js"></script>
+<script src="js/stats.js"></script>
+<script src="js/theme.js"></script>
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  const s        = getStats();
+  const unlocked = getUnlockedIds();
+  const wins     = s.totalWins;
+  const pct      = s.totalGames > 0 ? Math.round((wins / s.totalGames) * 100) : 0;
+  const avg      = wins > 0 ? formatTime(Math.round(s.totalTime / wins)) : '—';
+  const avgM     = wins > 0 ? Math.round(s.totalMoves / wins) : '—';
+
+  /* Hero */
+  const badges = [];
+  if (s.streak >= 3)                  badges.push(`<span class="pp-badge pp-badge-fire">🔥 ${s.streak} günlük seri</span>`);
+  if (pct >= 80 && s.totalGames >= 5) badges.push(`<span class="pp-badge pp-badge-accent">${pct}% oran</span>`);
+  if (s.endless.best >= 20)           badges.push(`<span class="pp-badge pp-badge-muted">∞ ${s.endless.best} raf</span>`);
+
+  document.getElementById('pp-hero').innerHTML = `
+    <div class="pp-hero-top">
+      <div class="pp-avatar">◈</div>
+      <div class="pp-hero-info">
+        <div class="pp-hero-name">Oyuncu</div>
+        ${badges.length ? `<div class="pp-hero-badges">${badges.join('')}</div>` : '<div class="pp-hero-sub">Henüz oyun yok</div>'}
+      </div>
+    </div>
+    <div class="pp-hero-divider"></div>
+    <div class="pp-hero-stats">
+      <div class="pp-hero-stat">
+        <span class="pp-hero-stat-val">${s.totalGames}</span>
+        <span class="pp-hero-stat-label">Oyun</span>
+      </div>
+      <div class="pp-hero-stat">
+        <span class="pp-hero-stat-val">${wins}</span>
+        <span class="pp-hero-stat-label">Kazanıldı</span>
+      </div>
+      <div class="pp-hero-stat${pct >= 75 && s.totalGames >= 5 ? ' pp-hero-stat-hi' : ''}">
+        <span class="pp-hero-stat-val">${pct}%</span>
+        <span class="pp-hero-stat-label">Oran</span>
+      </div>
+      <div class="pp-hero-stat">
+        <span class="pp-hero-stat-val">${avg}</span>
+        <span class="pp-hero-stat-label">Ort. Süre</span>
+      </div>
+      <div class="pp-hero-stat">
+        <span class="pp-hero-stat-val">${avgM}</span>
+        <span class="pp-hero-stat-label">Ort. Hamle</span>
+      </div>
+      <div class="pp-hero-stat">
+        <span class="pp-hero-stat-val">${s.endless.best || 0}</span>
+        <span class="pp-hero-stat-label">Sonsuz Rekoru</span>
+      </div>
+    </div>
+  `;
+
+  /* Başarım alt yazısı */
+  const sub = document.getElementById('pp-ach-sub');
+  if (sub) sub.textContent = `${unlocked.size} / ${ACHIEVEMENTS.length} kazanıldı`;
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<script>(function(){var t=localStorage.getItem('rafx_theme');document.documentElement.dataset.theme=(t==='light')?'light':'dark';})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAF× — İstatistikler</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#d4f03c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="RAF×">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+</head>
+<body>
+
+<div class="settings-page">
+
+  <header class="settings-header">
+    <a href="javascript:history.back()" class="back-link">← geri</a>
+    <div class="game-logo">RAF<span class="x">×</span></div>
+    <span class="settings-page-title">İstatistikler</span>
+    <div class="header-spacer"></div>
+  </header>
+
+  <div class="profile-body">
+
+    <!-- ── Genel ── -->
+    <div class="pp-section">
+      <div class="pp-section-label">Genel</div>
+      <div class="pp-stat-block" id="pp-stat-block"></div>
+    </div>
+
+    <!-- ── Rekorlar ── -->
+    <div class="pp-section">
+      <div class="pp-section-label">Rekorlar</div>
+      <div class="pp-records-combined" id="pp-records-combined"></div>
+    </div>
+
+    <!-- ── Detaylar ── -->
+    <div class="pp-section">
+      <div class="pp-section-label">Seriler & Günlük</div>
+      <div class="pp-detail-strip" id="pp-detail-strip"></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="js/storage.js"></script>
+<script src="js/stats.js"></script>
+<script src="js/theme.js"></script>
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  const s    = getStats();
+  const wins = s.totalWins;
+  const pct  = s.totalGames > 0 ? Math.round((wins / s.totalGames) * 100) : 0;
+  const avg  = wins > 0 ? formatTime(Math.round(s.totalTime / wins)) : '—';
+  const avgM = wins > 0 ? Math.round(s.totalMoves / wins) : '—';
+
+  /* Genel stat bloğu */
+  const statDefs = [
+    { val: s.totalGames, label: 'Toplam Oyun' },
+    { val: wins,         label: 'Kazanıldı'   },
+    { val: pct + '%',    label: 'Kazanma Oranı', hi: pct >= 75 && s.totalGames >= 5 },
+    { val: avg,          label: 'Ort. Süre'   },
+    { val: avgM,         label: 'Ort. Hamle'  },
+    { val: s.timed.wins || 0, label: 'Süre Sınırı Kazan' },
+  ];
+  document.getElementById('pp-stat-block').innerHTML = statDefs.map(d =>
+    `<div class="pp-stat-block-item">
+      <span class="pp-stat-block-val${d.hi ? ' pp-stat-hi' : ''}">${d.val}</span>
+      <span class="pp-stat-block-label">${d.label}</span>
+    </div>`
+  ).join('');
+
+  /* Rekorlar (birleşik) */
+  const diffMeta = [
+    { key: 'easy',   label: 'Kolay' },
+    { key: 'medium', label: 'Orta'  },
+    { key: 'hard',   label: 'Zor'   },
+  ];
+  const maxW = Math.max(s.byDiff.easy.wins, s.byDiff.medium.wins, s.byDiff.hard.wins, 1);
+
+  document.getElementById('pp-records-combined').innerHTML = diffMeta.map(d => {
+    const r      = getRecord(d.key);
+    const barPct = Math.round((s.byDiff[d.key].wins / maxW) * 100);
+    const dWins  = s.byDiff[d.key].wins;
+    const games  = s.byDiff[d.key].games;
+    const rate   = games > 0 ? Math.round(dWins / games * 100) + '%' : '—';
+    return `
+      <div class="pp-cr-row" data-diff="${d.key}">
+        <span class="pp-cr-diff ${d.key}">${d.label}</span>
+        <div class="pp-cr-bar-wrap">
+          <div class="pp-cr-bar"><div class="pp-cr-bar-fill" style="width:${barPct}%"></div></div>
+          <span class="pp-cr-bar-label">${dWins} kazanıldı · ${rate}</span>
+        </div>
+        <div class="pp-cr-record">
+          <span class="pp-cr-time">${r && r.bestTime ? formatTime(r.bestTime) : '—'}</span>
+          <span class="pp-cr-moves">${r && r.bestMoves != null ? r.bestMoves + ' hamle' : 'yok'}</span>
+        </div>
+      </div>`;
+  }).join('');
+
+  /* Detaylar */
+  const details = [
+    { val: s.streak > 0 ? '🔥 ' + s.streak : '—', label: 'Günlük Seri'  },
+    { val: s.bestStreak,  label: 'En Uzun Seri' },
+    { val: s.dailyWins,   label: 'Günlük Kazan' },
+  ];
+  document.getElementById('pp-detail-strip').innerHTML = details.map(d =>
+    `<div class="pp-detail-item">
+      <span class="pp-detail-val">${d.val}</span>
+      <span class="pp-detail-label">${d.label}</span>
+    </div>`
+  ).join('');
+});
+</script>
+
+</body>
+</html>

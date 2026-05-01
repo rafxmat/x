@@ -248,6 +248,225 @@ const ACHIEVEMENTS = [
     desc: 'Toplam 1 saat oyna',
     check: s => s.totalTime >= 3600,
   },
+
+  /* ── Kazanma serileri ── */
+  {
+    id: 'wins25',
+    icon: '🥈',
+    name: 'Gümüş',
+    desc: '25 oyunu kazan',
+    check: s => s.totalWins >= 25,
+  },
+  {
+    id: 'wins100',
+    icon: '🎖',
+    name: 'Yüz Zafer',
+    desc: '100 oyunu kazan',
+    check: s => s.totalWins >= 100,
+  },
+  {
+    id: 'wins250',
+    icon: '🏅',
+    name: 'Efsane',
+    desc: '250 oyunu kazan',
+    check: s => s.totalWins >= 250,
+  },
+  {
+    id: 'wins500',
+    icon: '👑',
+    name: 'Kral',
+    desc: '500 oyunu kazan',
+    check: s => s.totalWins >= 500,
+  },
+
+  /* ── Oyun sayısı ── */
+  {
+    id: 'games50',
+    icon: '📊',
+    name: 'Ellinci Maç',
+    desc: '50 oyun oyna',
+    check: s => s.totalGames >= 50,
+  },
+  {
+    id: 'games200',
+    icon: '📈',
+    name: 'Deneyimli',
+    desc: '200 oyun oyna',
+    check: s => s.totalGames >= 200,
+  },
+  {
+    id: 'games500',
+    icon: '🎰',
+    name: 'Veteran',
+    desc: '500 oyun oyna',
+    check: s => s.totalGames >= 500,
+  },
+
+  /* ── Sonsuz mod ── */
+  {
+    id: 'endless5',
+    icon: '🌱',
+    name: 'Sonsuz Başlar',
+    desc: 'Sonsuz modda 5 raf tamamla',
+    check: s => s.endless.best >= 5,
+  },
+  {
+    id: 'endless30',
+    icon: '🌀',
+    name: 'Otuzda Bir',
+    desc: 'Sonsuz modda 30 raf tamamla',
+    check: s => s.endless.best >= 30,
+  },
+  {
+    id: 'endless100',
+    icon: '🌌',
+    name: 'Sonsuz Aşan',
+    desc: 'Sonsuz modda 100 raf tamamla',
+    check: s => s.endless.best >= 100,
+  },
+  {
+    id: 'endless_go',
+    icon: '🔁',
+    name: 'Sonsuz Meraklı',
+    desc: 'Sonsuz modda 5 oyun başlat',
+    check: s => s.endless.games >= 5,
+  },
+
+  /* ── Günlük seri ── */
+  {
+    id: 'streak3',
+    icon: '🕯',
+    name: 'Ateş Yakmak',
+    desc: '3 gün üst üste oyna',
+    check: s => s.bestStreak >= 3,
+  },
+  {
+    id: 'streak14',
+    icon: '🌤',
+    name: 'İki Hafta',
+    desc: '14 gün üst üste oyna',
+    check: s => s.bestStreak >= 14,
+  },
+  {
+    id: 'streak30',
+    icon: '☀',
+    name: 'Bir Ay',
+    desc: '30 gün üst üste oyna',
+    check: s => s.bestStreak >= 30,
+  },
+
+  /* ── Günlük bulmaca ── */
+  {
+    id: 'daily5',
+    icon: '📅',
+    name: 'Beş Günlük',
+    desc: '5 günlük bulmaca tamamla',
+    check: s => s.dailyWins >= 5,
+  },
+  {
+    id: 'daily25',
+    icon: '🗓',
+    name: 'Yirmi Beş Gün',
+    desc: '25 günlük bulmaca tamamla',
+    check: s => s.dailyWins >= 25,
+  },
+  {
+    id: 'daily50',
+    icon: '📆',
+    name: 'Günlük Efsane',
+    desc: '50 günlük bulmaca tamamla',
+    check: s => s.dailyWins >= 50,
+  },
+
+  /* ── Süre sınırı modu ── */
+  {
+    id: 'timed5',
+    icon: '⚡',
+    name: 'Hız Tutkunu',
+    desc: 'Süre sınırı modunda 5 kez kazan',
+    check: s => s.timed.wins >= 5,
+  },
+  {
+    id: 'timed10',
+    icon: '⏰',
+    name: 'Zaman Efendisi',
+    desc: 'Süre sınırı modunda 10 kez kazan',
+    check: s => s.timed.wins >= 10,
+  },
+  {
+    id: 'timed_play',
+    icon: '🎯',
+    name: 'Süre Delisi',
+    desc: 'Süre sınırı modunda 10 oyun oyna',
+    check: s => s.timed.games >= 10,
+  },
+
+  /* ── Zorluk bazlı ── */
+  {
+    id: 'easy10',
+    icon: '🟢',
+    name: 'Kolay Ustası',
+    desc: 'Kolay modda 10 oyun kazan',
+    check: s => s.byDiff.easy.wins >= 10,
+  },
+  {
+    id: 'medium5',
+    icon: '🟡',
+    name: 'Orta Yolcu',
+    desc: 'Orta modda 5 oyun kazan',
+    check: s => s.byDiff.medium.wins >= 5,
+  },
+  {
+    id: 'medium10',
+    icon: '🟠',
+    name: 'Orta Uzman',
+    desc: 'Orta modda 10 oyun kazan',
+    check: s => s.byDiff.medium.wins >= 10,
+  },
+  {
+    id: 'hard5',
+    icon: '🔴',
+    name: 'Zoru Sevenler',
+    desc: 'Zor modda 5 oyun kazan',
+    check: s => s.byDiff.hard.wins >= 5,
+  },
+  {
+    id: 'hard10',
+    icon: '💪',
+    name: 'Demir İrade',
+    desc: 'Zor modda 10 oyun kazan',
+    check: s => s.byDiff.hard.wins >= 10,
+  },
+  {
+    id: 'alldiff',
+    icon: '🌐',
+    name: 'Tam Paket',
+    desc: 'Üç zorlukta da en az 1 oyun kazan',
+    check: s => s.byDiff.easy.wins >= 1 && s.byDiff.medium.wins >= 1 && s.byDiff.hard.wins >= 1,
+  },
+
+  /* ── Toplam süre ── */
+  {
+    id: 'hour2',
+    icon: '⏳',
+    name: 'İki Saat',
+    desc: 'Toplam 2 saat oyna',
+    check: s => s.totalTime >= 7200,
+  },
+  {
+    id: 'hour5',
+    icon: '🕰',
+    name: 'Beş Saat',
+    desc: 'Toplam 5 saat oyna',
+    check: s => s.totalTime >= 18000,
+  },
+  {
+    id: 'hour10',
+    icon: '🌙',
+    name: 'On Saat',
+    desc: 'Toplam 10 saat oyna',
+    check: s => s.totalTime >= 36000,
+  },
 ];
 
 function getUnlockedIds() {

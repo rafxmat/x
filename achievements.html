@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<script>(function(){var t=localStorage.getItem('rafx_theme');document.documentElement.dataset.theme=(t==='light')?'light':'dark';})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAF× — Başarımlar</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#d4f03c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="RAF×">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+</head>
+<body>
+
+<div class="settings-page">
+
+  <header class="settings-header">
+    <a href="javascript:history.back()" class="back-link">← geri</a>
+    <div class="game-logo">RAF<span class="x">×</span></div>
+    <span class="settings-page-title">Başarımlar</span>
+    <div class="header-spacer"></div>
+  </header>
+
+  <div class="profile-body">
+
+    <div class="pp-section">
+      <div class="pp-section-label">
+        Kazanılan
+        <span class="pp-ach-count" id="pp-ach-count"></span>
+      </div>
+      <div class="pp-ach-grid" id="pp-ach-grid"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── Başarım Detay Sheet ── -->
+<div id="ach-sheet-overlay" class="ach-sheet-overlay" onclick="if(event.target===this)closeAchSheet()">
+  <div class="ach-sheet-card">
+    <div class="ach-sheet-handle"></div>
+    <div class="ach-sheet-icon" id="ach-sheet-icon"></div>
+    <div class="ach-sheet-name" id="ach-sheet-name"></div>
+    <div class="ach-sheet-desc" id="ach-sheet-desc"></div>
+    <div class="ach-sheet-status" id="ach-sheet-status"></div>
+  </div>
+</div>
+
+<script src="js/storage.js"></script>
+<script src="js/stats.js"></script>
+<script src="js/theme.js"></script>
+<script>
+
+function showAchDetail(id) {
+  const a = ACHIEVEMENTS.find(x => x.id === id);
+  if (!a) return;
+  const unlocked = getUnlockedIds().has(id);
+  document.getElementById('ach-sheet-icon').textContent  = a.icon;
+  document.getElementById('ach-sheet-icon').className    = 'ach-sheet-icon' + (unlocked ? '' : ' locked');
+  document.getElementById('ach-sheet-name').textContent  = a.name;
+  document.getElementById('ach-sheet-desc').textContent  = a.desc;
+  document.getElementById('ach-sheet-status').textContent = unlocked ? '✓ Kazanıldı' : 'Henüz kazanılmadı';
+  document.getElementById('ach-sheet-status').className   = 'ach-sheet-status ' + (unlocked ? 'unlocked' : 'locked');
+  document.getElementById('ach-sheet-overlay').classList.add('show');
+}
+
+function closeAchSheet() {
+  document.getElementById('ach-sheet-overlay').classList.remove('show');
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const unlocked = getUnlockedIds();
+
+  document.getElementById('pp-ach-count').textContent = `${unlocked.size} / ${ACHIEVEMENTS.length}`;
+
+  document.getElementById('pp-ach-grid').innerHTML = ACHIEVEMENTS.map(a => {
+    const on = unlocked.has(a.id);
+    return `<div class="pp-ach-chip${on ? ' on' : ''}" title="${a.desc}" onclick="showAchDetail('${a.id}')">
+      <span class="pp-ach-icon">${a.icon}</span>
+      <span class="pp-ach-name">${a.name}</span>
+    </div>`;
+  }).join('');
+});
+</script>
+
+</body>
+</html>
