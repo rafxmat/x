@@ -109,6 +109,24 @@
         </div>
       </div>
 
+      <div class="settings-row settings-row-track">
+        <div class="settings-row-icon">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 10h2l2-6 3 12 2-8 2 4h3"/>
+          </svg>
+        </div>
+        <div class="settings-row-info">
+          <div class="settings-row-label">Müzik Parçası</div>
+          <div class="settings-row-desc">Arka plan müziği stili</div>
+        </div>
+        <div class="settings-pill-switch" id="track-pill">
+          <button class="settings-pill-btn" id="pill-track-ambient"  onclick="onSetTrack('ambient')">Ambient</button>
+          <button class="settings-pill-btn" id="pill-track-lofi"     onclick="onSetTrack('lofi')">Lo-fi</button>
+          <button class="settings-pill-btn" id="pill-track-arpeji"   onclick="onSetTrack('arpeji')">Arpeji</button>
+          <button class="settings-pill-btn" id="pill-track-minimal"  onclick="onSetTrack('minimal')">Minimal</button>
+        </div>
+      </div>
+
       <div class="settings-row">
         <div class="settings-row-icon">
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -296,10 +314,24 @@ function onSetControl(mode) {
   updateControlBtn();
 }
 
+function updateTrackPill() {
+  const current = getMusicTrack();
+  ['ambient', 'lofi', 'arpeji', 'minimal'].forEach(t => {
+    const btn = document.getElementById('pill-track-' + t);
+    if (btn) btn.classList.toggle('active', t === current);
+  });
+}
+
+function onSetTrack(track) {
+  setMusicTrack(track);
+  updateTrackPill();
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   updateSfxSlider();
   updateMusicSlider();
   updateControlBtn();
+  updateTrackPill();
   updateHapticToggle();
 
   const toggle = document.getElementById('theme-toggle');

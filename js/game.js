@@ -798,7 +798,21 @@ function openInGameSettings() {
   document.getElementById('igs-pill-drag').classList.toggle('active', isDrag);
   document.getElementById('igs-pill-click').classList.toggle('active', !isDrag);
 
+  const currentTrack = getMusicTrack();
+  ['ambient', 'lofi', 'arpeji', 'minimal'].forEach(t => {
+    const btn = document.getElementById('igs-pill-track-' + t);
+    if (btn) btn.classList.toggle('active', t === currentTrack);
+  });
+
   document.getElementById('ingame-settings').classList.add('show');
+}
+
+function igsSetTrack(track) {
+  setMusicTrack(track);
+  ['ambient', 'lofi', 'arpeji', 'minimal'].forEach(t => {
+    const btn = document.getElementById('igs-pill-track-' + t);
+    if (btn) btn.classList.toggle('active', t === track);
+  });
 }
 
 function closeInGameSettings() {

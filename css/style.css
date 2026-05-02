@@ -2656,6 +2656,36 @@ body:has(.game-page) {
   box-shadow: 0 0 8px rgba(212,240,60,.3);
 }
 
+/* 4'lü müzik parçası seçici — dikey layout */
+.igs-row.igs-row-track {
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 8px;
+}
+.igs-row.igs-row-track .settings-pill-switch {
+  width: 100%;
+  flex-shrink: 1;
+}
+.igs-row.igs-row-track .settings-pill-btn {
+  flex: 1;
+  text-align: center;
+  padding: 5px 6px;
+}
+
+.settings-row-track {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+.settings-row-track .settings-pill-switch {
+  width: 100%;
+  flex-shrink: unset;
+}
+.settings-row-track .settings-pill-btn {
+  flex: 1;
+  text-align: center;
+  padding: 5px 6px;
+}
+
 /* Tehlikeli işlem butonu */
 .settings-danger-btn {
   flex-shrink: 0;

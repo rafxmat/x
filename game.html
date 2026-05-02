@@ -116,7 +116,7 @@
 <!-- Duraklama Menüsü -->
 <div id="pause-menu">
   <div class="pause-card">
-    <div class="pause-card-title">⏸ Duraklatıldı</div>
+    <div class="pause-card-title"><svg width="13" height="15" viewBox="0 0 12 14" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:6px"><rect x="0" y="0" width="4" height="14" rx="1"/><rect x="8" y="0" width="4" height="14" rx="1"/></svg>Duraklatıldı</div>
     <div class="pause-card-info" id="pause-card-info"></div>
     <div class="pause-card-divider"></div>
     <div class="pause-card-actions">
@@ -201,6 +201,16 @@
             </div>
           </div>
         </label>
+      </div>
+
+      <div class="igs-row igs-row-track">
+        <div class="igs-row-label">Müzik Parçası</div>
+        <div class="settings-pill-switch">
+          <button class="settings-pill-btn" id="igs-pill-track-ambient"  onclick="igsSetTrack('ambient')">Ambient</button>
+          <button class="settings-pill-btn" id="igs-pill-track-lofi"     onclick="igsSetTrack('lofi')">Lo-fi</button>
+          <button class="settings-pill-btn" id="igs-pill-track-arpeji"   onclick="igsSetTrack('arpeji')">Arpeji</button>
+          <button class="settings-pill-btn" id="igs-pill-track-minimal"  onclick="igsSetTrack('minimal')">Minimal</button>
+        </div>
       </div>
 
       <div class="igs-row">
