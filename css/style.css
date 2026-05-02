@@ -979,9 +979,10 @@ body:has(.game-page) {
 
 /* Duraklat butonu */
 .hdr-pause-btn {
+  display: inline-flex; align-items: center; justify-content: center;
   background: transparent; border: 1px solid var(--border2);
-  color: var(--muted3); border-radius: var(--r);
-  padding: 7px 16px; font-size: 1rem; line-height: 1;
+  color: var(--muted3); border-radius: 50%;
+  width: 34px; height: 34px; padding: 0; flex-shrink: 0;
   cursor: pointer; transition: color .15s, border-color .15s, background .15s;
   font-family: var(--mono);
 }
@@ -1057,8 +1058,8 @@ body:has(.game-page) {
 .pes-btn {
   display: inline-flex; align-items: center; gap: 5px;
   background: transparent; border: 1px solid var(--red); color: var(--red);
-  border-radius: var(--r); padding: 6px 12px;
-  font-family: var(--mono); font-size: 0.68rem;
+  border-radius: var(--r); padding: 0 12px; height: 34px;
+  font-family: var(--mono); font-size: 0.85rem;
   cursor: pointer; transition: background .15s, opacity .15s;
   text-transform: lowercase;
 }
@@ -1154,8 +1155,8 @@ body:has(.game-page) {
 .hint-btn {
   display: inline-flex; align-items: center; gap: 6px;
   background: transparent; border: 1px solid var(--gold); color: var(--gold);
-  border-radius: var(--r); padding: 6px 12px;
-  font-family: var(--mono); font-size: 0.68rem;
+  border-radius: var(--r); padding: 0 12px; height: 34px;
+  font-family: var(--mono); font-size: 0.85rem;
   cursor: pointer; transition: background .15s, opacity .15s;
   text-transform: lowercase;
 }
@@ -1464,7 +1465,7 @@ body:has(.game-page) {
   flex-shrink: 0;
 }
 
-.switch #theme-toggle {
+.switch input {
   opacity: 0;
   width: 0;
   height: 0;
@@ -1488,7 +1489,7 @@ body:has(.game-page) {
   transition: background-color 0.4s;
 }
 
-#theme-toggle:checked + .slider { background-color: black; }
+.switch input:checked + .slider { background-color: black; }
 #theme-toggle:focus  + .slider  { box-shadow: 0 0 1px #2196f3; }
 
 #theme-toggle:checked + .slider .sun-moon {
@@ -1501,7 +1502,7 @@ body:has(.game-page) {
   transition: 0.4s;
   fill: gray;
 }
-#theme-toggle:checked + .slider .sun-moon .moon-dot { opacity: 1; }
+.switch input:checked + .slider .sun-moon .moon-dot { opacity: 1; }
 
 .slider.round              { border-radius: 34px; }
 .slider.round .sun-moon    { border-radius: 50%; }
@@ -1549,7 +1550,7 @@ body:has(.game-page) {
   transition: 0.4s;
   animation: star-twinkle 2s infinite;
 }
-#theme-toggle:checked + .slider .stars {
+.switch input:checked + .slider .stars {
   transform: translateY(0);
   opacity: 1;
 }
@@ -2055,6 +2056,68 @@ body:has(.game-page) {
 [data-theme="light"] .pause-action.newgame { color: #1a8fcc; }
 [data-theme="light"] .pause-action.newgame .pause-action-icon { background: rgba(26,143,204,.1); }
 [data-theme="light"] .pause-action.quit .pause-action-icon { background: rgba(192,26,26,.08); }
+
+/* ════════════════════════════════════════
+   OYUN İÇİ AYARLAR
+════════════════════════════════════════ */
+
+#ingame-settings {
+  display: none; position: fixed; inset: 0;
+  background: rgba(6,5,3,.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 800;
+  align-items: center; justify-content: center;
+}
+#ingame-settings.show { display: flex; animation: pmFadeIn .15s ease; }
+
+.igs-card {
+  background: linear-gradient(155deg, #1c1a16 0%, #0f0e0b 100%);
+  border: 1px solid rgba(255,255,255,.07);
+  border-top: 1px solid rgba(255,255,255,.13);
+  border-radius: 20px;
+  padding: 22px 22px 26px;
+  width: min(340px, 92vw);
+  display: flex; flex-direction: column; gap: 18px;
+  box-shadow: 0 28px 64px rgba(0,0,0,.85);
+  animation: pmSlideUp .25s cubic-bezier(.22,.68,0,1.15);
+}
+
+.igs-header {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.igs-title {
+  font-family: var(--sans); font-size: 1.15rem; font-weight: 800;
+  color: var(--text);
+}
+.igs-close {
+  background: rgba(255,255,255,.06); border: 1px solid var(--border2);
+  border-radius: 8px; color: var(--muted3);
+  width: 30px; height: 30px; cursor: pointer;
+  font-size: .85rem; display: flex; align-items: center; justify-content: center;
+  transition: background .15s, color .15s;
+}
+.igs-close:hover { background: rgba(255,255,255,.1); color: var(--text); }
+
+.igs-rows { display: flex; flex-direction: column; gap: 16px; }
+
+.igs-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.igs-row-label {
+  font-family: var(--sans); font-size: .85rem; font-weight: 600;
+  color: var(--text); flex-shrink: 0;
+}
+.igs-slider-wrap {
+  display: flex; align-items: center; gap: 8px; flex: 1; justify-content: flex-end;
+}
+
+[data-theme="light"] .igs-card {
+  background: linear-gradient(155deg, #f0ebe1 0%, #e3ddd3 100%);
+  border-color: rgba(0,0,0,.08);
+  border-top-color: rgba(255,255,255,.75);
+}
+[data-theme="light"] .igs-close { background: rgba(0,0,0,.05); }
 
 /* ════════════════════════════════════════
    PES ONAY DIALOGU
@@ -2725,7 +2788,7 @@ body:has(.game-page) {
   flex-shrink: 0;
 }
 
-.switch #theme-toggle {
+.switch input {
   opacity: 0;
   width: 0;
   height: 0;
@@ -2748,18 +2811,20 @@ body:has(.game-page) {
   left: 4px;
   bottom: 4px;
   background-color: yellow;
-  transition: background-color 0.5s ease-in-out;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
 }
 
-#theme-toggle:checked + .slider {
+.switch input:checked + .slider {
   background-color: #0d0d1a;
 }
 
-#theme-toggle:focus + .slider {
+.switch input:focus + .slider {
   box-shadow: 0 0 1px #2196f3;
 }
 
-#theme-toggle:checked + .slider .sun-moon {
+.switch input:checked + .slider .sun-moon {
+  -webkit-transform: translateX(26px);
   transform: translateX(26px);
   background-color: white;
   animation: rotate-center 0.6s ease-in-out both;
@@ -2859,7 +2924,7 @@ body:has(.game-page) {
   animation: star-twinkle 2s infinite;
 }
 
-#theme-toggle:checked + .slider .stars {
+.switch input:checked + .slider .stars {
   transform: translateY(0);
   opacity: 1;
 }

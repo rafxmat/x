@@ -764,7 +764,6 @@ function openPauseMenu() {
     info.textContent = txt;
   }
 
-  _updatePauseSoundBtn();
   document.getElementById('pause-menu').classList.add('show');
 }
 
@@ -778,30 +777,72 @@ function pauseMenuNewGame() {
   initGame();
 }
 
-function _updatePauseSoundBtn() {
-  const icon  = document.getElementById('pause-sound-icon');
-  const label = document.getElementById('pause-sound-label');
-  if (!icon || !label) return;
-  const sfxOn   = !isMuted();
-  const musicOn = isMusicOn();
-  const allOn   = sfxOn && musicOn;
-  const anyOn   = sfxOn || musicOn;
-  icon.textContent  = allOn ? '🔊' : (anyOn ? '🔉' : '🔇');
-  label.textContent = anyOn ? 'Ses Açık' : 'Ses Kapalı';
+/* ── Oyun İçi Ayarlar ── */
+function openInGameSettings() {
+  const sfx   = getSfxVolume();
+  const music = getMusicVolume();
+  const isDark = document.documentElement.dataset.theme === 'dark';
+  const isDrag = getControlMode() !== 'click';
+
+  const sfxEl = document.getElementById('igs-sfx');
+  if (sfxEl) { sfxEl.value = sfx; igsSetFill(sfxEl); }
+  document.getElementById('igs-sfx-val').textContent = sfx;
+
+  const musicEl = document.getElementById('igs-music');
+  if (musicEl) { musicEl.value = music; igsSetFill(musicEl); }
+  document.getElementById('igs-music-val').textContent = music;
+
+  document.getElementById('igs-haptic').checked = getHaptic();
+  document.getElementById('igs-theme-toggle').checked = isDark;
+
+  document.getElementById('igs-pill-drag').classList.toggle('active', isDrag);
+  document.getElementById('igs-pill-click').classList.toggle('active', !isDrag);
+
+  document.getElementById('ingame-settings').classList.add('show');
 }
 
-function togglePauseSound() {
-  const anyOn = !isMuted() || isMusicOn();
-  if (anyOn) {
-    setSfxVolume(0);
-    setMusicOn(false);
-    stopAmbientMusic();
-  } else {
-    setSfxVolume(80);
-    setMusicOn(true);
-    startAmbientMusic();
+function closeInGameSettings() {
+  document.getElementById('ingame-settings').classList.remove('show');
+}
+
+function igsSetFill(slider) {
+  const pct = ((slider.value - slider.min) / (slider.max - slider.min) * 100).toFixed(1) + '%';
+  slider.style.setProperty('--fill', pct);
+}
+
+function igsOnSfx(v) {
+  setSfxVolume(parseInt(v));
+  document.getElementById('igs-sfx-val').textContent = v;
+  igsSetFill(document.getElementById('igs-sfx'));
+}
+
+function igsOnMusic(v) {
+  const vol = parseInt(v);
+  const wasOff = getMusicVolume() === 0;
+  setMusicVolume(vol);
+  document.getElementById('igs-music-val').textContent = vol;
+  igsSetFill(document.getElementById('igs-music'));
+  if (vol > 0 && wasOff) startAmbientMusic();
+  else if (vol === 0) stopAmbientMusic();
+}
+
+function igsSetTheme(dark) {
+  localStorage.setItem('rafx_theme', dark ? 'dark' : 'light');
+  if (!dark) {
+    const slider = document.querySelector('#igs-theme-toggle + .slider');
+    if (slider) {
+      slider.classList.add('toggling-light');
+      setTimeout(() => slider.classList.remove('toggling-light'), 700);
+    }
   }
-  _updatePauseSoundBtn();
+  applyTheme(dark, true);
+}
+
+function igsSetControl(mode) {
+  setControlMode(mode);
+  const isDrag = mode !== 'click';
+  document.getElementById('igs-pill-drag').classList.toggle('active', isDrag);
+  document.getElementById('igs-pill-click').classList.toggle('active', !isDrag);
 }
 
 /* ── Yeni oyun ── */
