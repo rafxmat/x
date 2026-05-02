@@ -36,6 +36,10 @@ function setControlMode(mode) {
   localStorage.setItem(CONTROL_KEY, mode);
 }
 
+const HAPTIC_KEY = 'rafx_haptic';
+function getHaptic() { return localStorage.getItem(HAPTIC_KEY) !== 'off'; }
+function setHaptic(on) { localStorage.setItem(HAPTIC_KEY, on ? 'on' : 'off'); }
+
 function formatTime(sec) {
   if (!sec && sec !== 0) return '—';
   const m = Math.floor(sec / 60), s = sec % 60;

@@ -112,6 +112,24 @@
       <div class="settings-row">
         <div class="settings-row-icon">
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="6" y="2" width="8" height="16" rx="3"/>
+            <path d="M2 8c-1 1.5-1 4.5 0 6"/>
+            <path d="M18 8c1 1.5 1 4.5 0 6"/>
+          </svg>
+        </div>
+        <div class="settings-row-info">
+          <div class="settings-row-label">Titreşim</div>
+          <div class="settings-row-desc">Doğru hamle ve oyun sonu geri bildirimi</div>
+        </div>
+        <label class="uiv-switch">
+          <input id="haptic-toggle" type="checkbox" onchange="onHapticToggle(this.checked)">
+          <span class="uiv-slider"></span>
+        </label>
+      </div>
+
+      <div class="settings-row">
+        <div class="settings-row-icon">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M7 14V5a2 2 0 0 1 4 0v5"/>
             <path d="M11 7.5a2 2 0 0 1 4 0V10"/>
             <path d="M15 9a2 2 0 0 1 2 2v2a6 6 0 0 1-6 6H9a6 6 0 0 1-6-6v-3"/>
@@ -256,6 +274,15 @@ function onMusicSlider(v) {
   if (slider) setSliderFill(slider);
 }
 
+function updateHapticToggle() {
+  const toggle = document.getElementById('haptic-toggle');
+  if (toggle) toggle.checked = getHaptic();
+}
+
+function onHapticToggle(on) {
+  setHaptic(on);
+}
+
 function updateControlBtn() {
   const isDrag = getControlMode() !== 'click';
   const dragBtn  = document.getElementById('pill-drag');
@@ -273,6 +300,7 @@ window.addEventListener('DOMContentLoaded', () => {
   updateSfxSlider();
   updateMusicSlider();
   updateControlBtn();
+  updateHapticToggle();
 
   const toggle = document.getElementById('theme-toggle');
   if (toggle) {

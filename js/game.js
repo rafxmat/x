@@ -92,6 +92,12 @@ function product(nums) {
   return nums.length === 0 ? null : nums.reduce((a, b) => a * b, 1);
 }
 
+/* ── Titreşim ── */
+function vibrate(ms) {
+  if (typeof getHaptic === 'function' && !getHaptic()) return;
+  if ('vibrate' in navigator) navigator.vibrate(ms);
+}
+
 /* ── Animasyonlu sayaç pop efekti ── */
 function popEl(id) {
   const el = document.getElementById(id);
@@ -253,8 +259,8 @@ function render(skipSound = false) {
       });
     }
 
-    // Parçacık patlaması
-    if (justDone) burstParticles(el);
+    // Parçacık patlaması + titreşim
+    if (justDone) { burstParticles(el); vibrate(40); }
 
     const row = el.querySelector(`#row-${shelf.id}`);
     shelf.nums.forEach((num, idx) => {
