@@ -230,20 +230,6 @@ function onSfxSlider(v) {
   if (slider) setSliderFill(slider);
 }
 
-function onResetStats() {
-  if (!confirm('Tüm istatistikler, rekorlar ve başarımlar silinecek. Devam et?')) return;
-  ['rafx_stats', 'rafx_ach', 'rafx_v1'].forEach(k => localStorage.removeItem(k));
-  // Günlük bulmaca sonuçlarını da temizle (rafx_daily_YYYY-MM-DD_diff)
-  for (let i = localStorage.length - 1; i >= 0; i--) {
-    const k = localStorage.key(i);
-    if (k && k.startsWith('rafx_daily_')) localStorage.removeItem(k);
-  }
-  const btn = document.getElementById('reset-btn');
-  btn.textContent = '✓ Sıfırlandı';
-  btn.disabled = true;
-  setTimeout(() => { btn.textContent = 'Sıfırla'; btn.disabled = false; }, 2500);
-}
-
 function installPWA() {
   if (!_deferredInstall) return;
   _deferredInstall.prompt();
@@ -280,11 +266,6 @@ function updateControlBtn() {
 
 function onSetControl(mode) {
   setControlMode(mode);
-  updateControlBtn();
-}
-
-function onControlToggle() {
-  setControlMode(getControlMode() === 'drag' ? 'click' : 'drag');
   updateControlBtn();
 }
 

@@ -20,6 +20,7 @@ let hintsUsed    = 0;
 let _solution    = [];
 let _hintCache   = null; // { candidateId, srcId, srcIdx } — her hamlede sıfırlanır
 const HINTS_MAX  = 3;
+let isPaused     = false;
 
 const enteringIds   = new Set();
 const completingIds = new Set();
@@ -57,7 +58,7 @@ function startTimer() {
   timerSec = 0;
 
   timerInt = setInterval(() => {
-    if (gameOver) return;
+    if (gameOver || isPaused) return;
     timerSec++;
     const tv = document.getElementById('timer-val');
 
@@ -292,8 +293,23 @@ function render(skipSound = false) {
   if (page) page.scrollTop = scrollTop;
 }
 
-/* ── Pes: sayıları otomatik yerleştir ── */
+/* ── Pes onay dialogu ── */
 function onPes() {
+  if (gameOver) return;
+  document.getElementById('pes-confirm').classList.add('show');
+}
+
+function closePesConfirm() {
+  document.getElementById('pes-confirm').classList.remove('show');
+}
+
+function closePesConfirmAndExecute() {
+  closePesConfirm();
+  executePes();
+}
+
+/* ── Pes: sayıları otomatik yerleştir ── */
+function executePes() {
   if (gameOver) return;
   gameOver = true;
   clearInterval(timerInt);
@@ -321,55 +337,34 @@ function onPes() {
     prevLocked.add(shelf.id);
   });
 
-  // 1. Render'dan ÖNCE ekrandaki tüm chip konumlarını kaydet (değere göre)
-  const chipPool = {};
-  document.querySelectorAll('.num-chip').forEach(chip => {
-    const val = chip.textContent.trim();
-    if (!chipPool[val]) chipPool[val] = [];
-    chipPool[val].push(chip.getBoundingClientRect());
-  });
-
-  // 2. Rafları çözüme getir ve render et
+  // 1. Rafları çözüme getir ve render et
   render(true);
 
-  // 3. Her pes-chip'i eski konumundan yeni konumuna kaydır (FLIP)
+  // 2. Pes-chipleri gizle, sonra sırayla birer birer belirt
   const pesChips = [...document.querySelectorAll('.num-chip.pes-chip')];
-  pesChips.forEach((chip, i) => {
-    const val      = chip.textContent.trim();
-    const fromRect = chipPool[val]?.shift();
-    const toRect   = chip.getBoundingClientRect();
 
-    if (!fromRect) {
-      // Kaynak konumu yoksa yukarıdan belirir
-      chip.style.opacity   = '0';
-      chip.style.transform = 'translateY(-20px) scale(0.5)';
-      setTimeout(() => {
-        chip.style.transition = 'transform 0.36s cubic-bezier(0.34,1.56,0.64,1), opacity 0.22s';
-        chip.style.opacity    = '1';
-        chip.style.transform  = '';
-      }, i * 85);
-      return;
-    }
-
-    const dx = fromRect.left - toRect.left;
-    const dy = fromRect.top  - toRect.top;
-
-    // Chip'i anlık olarak eski konumuna taşı
+  // Hepsini başlangıç durumuna al (transition'sız, anında)
+  pesChips.forEach(chip => {
     chip.style.transition = 'none';
-    chip.style.transform  = `translate(${dx}px, ${dy}px)`;
-    chip.style.zIndex     = '50';
-    chip.getBoundingClientRect(); // reflow — bir sonraki frame için gerekli
-
-    // Stagger ile hedef konuma süzül
-    setTimeout(() => {
-      chip.style.transition = `transform 0.44s cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
-      chip.style.transform  = '';
-      setTimeout(() => { chip.style.transition = chip.style.zIndex = ''; }, 500);
-    }, i * 85);
+    chip.style.opacity    = '0';
+    chip.style.transform  = 'scale(0.5) translateY(-14px)';
   });
 
-  const totalDelay = pesChips.length > 0 ? pesChips.length * 85 + 600 : 800;
-  setTimeout(showWin, totalDelay);
+  // Tek bir reflow — başlangıç durumu DOM'a işlensin
+  if (pesChips.length > 0) pesChips[0].getBoundingClientRect();
+
+  // Sırayla birer birer animasyonla belirt
+  pesChips.forEach((chip, i) => {
+    setTimeout(() => {
+      chip.style.transition = 'transform 0.38s cubic-bezier(0.34,1.56,0.64,1), opacity 0.22s ease';
+      chip.style.opacity    = '1';
+      chip.style.transform  = '';
+      setTimeout(() => { chip.style.transition = chip.style.transform = ''; }, 450);
+    }, i * 80);
+  });
+
+  const totalDelay = pesChips.length > 0 ? pesChips.length * 80 + 500 : 600;
+  setTimeout(showPesScreen, totalDelay);
 }
 
 /* ── Kazanma kontrolü ── */
@@ -495,24 +490,23 @@ function useHint() {
 
 /* ── Kazanma ekranı ── */
 function showWin() {
-  const isPes    = pesShelfIds.size > 0;
-  const stars    = isPes ? 0 : finalStars();
+  const stars    = finalStars();
   const timeStr  = formatTime(timerSec);
-  const isRecord = isPes ? false : saveRecord(difficulty, timerSec, moves);
+  const isRecord = saveRecord(difficulty, timerSec, moves);
   const diffName = { easy: 'Kolay', medium: 'Orta', hard: 'Zor' }[difficulty];
 
-  // İstatistik kaydet — pes oyunları kazanılmış sayılmaz
   const newAchs = recordGame({
     difficulty, mode: gameMode,
     seconds: timerSec, moves,
-    won: !isPes, stars,
+    won: true, stars,
     isDaily: isDailyMode,
     hintsUsed,
   });
-  if (isDailyMode && !isPes) saveDailyResult(difficulty, stars, timerSec, moves);
+  if (isDailyMode) saveDailyResult(difficulty, stars, timerSec, moves);
   newAchs.forEach(a => scheduleAchToast(a));
 
-  if (!isPes) { sndWinMelody(); startConfetti(); }
+  sndWinMelody();
+  startConfetti();
 
   document.getElementById('win-time').textContent  = timeStr;
   document.getElementById('win-moves').textContent = moves;
@@ -527,14 +521,32 @@ function showWin() {
   const dailyBadge = document.getElementById('win-daily-badge');
   if (dailyBadge) dailyBadge.style.display = isDailyMode ? 'block' : 'none';
 
-  const winTitle = document.querySelector('.win-title');
-  if (winTitle) winTitle.textContent = pesShelfIds.size > 0 ? 'Tamamlandı (pes)' : 'Tamamlandı';
-
   document.getElementById('win-screen').classList.add('show');
   updateHintButton();
 
   const streak = getStats().streak;
-  if (!isPes && streak >= 3) setTimeout(() => showStreakOverlay(streak), 900);
+  if (streak >= 3) setTimeout(() => showStreakOverlay(streak), 900);
+}
+
+/* ── Pes ekranı ── */
+function showPesScreen() {
+  const correct  = shelves.filter(s => prevLocked.has(s.id) && !pesShelfIds.has(s.id)).length;
+  const diffName = { easy: 'Kolay', medium: 'Orta', hard: 'Zor' }[difficulty];
+
+  const newAchs = recordGame({
+    difficulty, mode: gameMode,
+    seconds: timerSec, moves,
+    won: false, stars: 0,
+    isDaily: false,
+    hintsUsed,
+  });
+  newAchs.forEach(a => scheduleAchToast(a));
+
+  document.getElementById('pes-correct').textContent = correct;
+  document.getElementById('pes-time').textContent    = formatTime(timerSec);
+  document.getElementById('pes-moves').textContent   = moves;
+  document.getElementById('pes-screen').classList.add('show');
+  updateHintButton();
 }
 
 /* ── Seri kutlama overlay ── */
@@ -730,11 +742,72 @@ function showNextToast() {
   }, 3200);
 }
 
+/* ── Duraklama menüsü ── */
+function openPauseMenu() {
+  if (gameOver) return;
+  isPaused = true;
+
+  // Oyun bilgisini menüde göster
+  const diffNames = { easy: 'Kolay', medium: 'Orta', hard: 'Zor' };
+  const modeNames = { normal: 'Normal', timed: 'Süre Sınırı', endless: 'Sonsuz' };
+  const info = document.getElementById('pause-card-info');
+  if (info) {
+    let txt = diffNames[difficulty] || '';
+    const modeLabel = isDailyMode ? 'Günlük' : modeNames[gameMode];
+    if (modeLabel) txt += ' · ' + modeLabel;
+    info.textContent = txt;
+  }
+
+  _updatePauseSoundBtn();
+  document.getElementById('pause-menu').classList.add('show');
+}
+
+function closePauseMenu() {
+  isPaused = false;
+  document.getElementById('pause-menu').classList.remove('show');
+}
+
+function pauseMenuNewGame() {
+  closePauseMenu();
+  initGame();
+}
+
+function _updatePauseSoundBtn() {
+  const icon  = document.getElementById('pause-sound-icon');
+  const label = document.getElementById('pause-sound-label');
+  if (!icon || !label) return;
+  const sfxOn   = !isMuted();
+  const musicOn = isMusicOn();
+  const allOn   = sfxOn && musicOn;
+  const anyOn   = sfxOn || musicOn;
+  icon.textContent  = allOn ? '🔊' : (anyOn ? '🔉' : '🔇');
+  label.textContent = anyOn ? 'Ses Açık' : 'Ses Kapalı';
+}
+
+function togglePauseSound() {
+  const anyOn = !isMuted() || isMusicOn();
+  if (anyOn) {
+    setSfxVolume(0);
+    setMusicOn(false);
+    stopAmbientMusic();
+  } else {
+    setSfxVolume(80);
+    setMusicOn(true);
+    startAmbientMusic();
+  }
+  _updatePauseSoundBtn();
+}
+
 /* ── Yeni oyun ── */
 function initGame() {
   setDropHandler(dropOnShelf);
+  isPaused = false;
   document.getElementById('win-screen').classList.remove('show');
   document.getElementById('fail-screen').classList.remove('show');
+  document.getElementById('pes-screen').classList.remove('show');
+  document.getElementById('pes-confirm').classList.remove('show');
+  document.getElementById('pause-menu').classList.remove('show');
+  document.getElementById('daily-done-screen').classList.remove('show');
   stopConfetti();
 
   moves = 0; gameOver = false; prevCorrect = 0; prevMoves = 0;
@@ -855,6 +928,34 @@ function stopConfetti() {
   _confettiParticles = [];
 }
 
+/* ── Günlük bitmişse bilgi ekranı ── */
+function showDailyDoneScreen(result) {
+  const diffName = { easy: 'Kolay', medium: 'Orta', hard: 'Zor' }[difficulty];
+  const stars = result.stars;
+  const dateStr = new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
+
+  document.getElementById('daily-done-sub').textContent = diffName + ' · ' + dateStr;
+  document.getElementById('daily-done-stars').innerHTML = [0,1,2].map(i =>
+    `<span class="win-star${i < stars ? ' win-star-earned' : ' win-star-empty'}">★</span>`
+  ).join('');
+  document.getElementById('daily-done-stats').innerHTML = `
+    <div class="daily-done-stat">
+      <span class="daily-done-stat-val">${formatTime(result.time)}</span>
+      <span class="daily-done-stat-label">Süre</span>
+    </div>
+    <div class="daily-done-stat">
+      <span class="daily-done-stat-val">${result.moves}</span>
+      <span class="daily-done-stat-label">Hamle</span>
+    </div>
+  `;
+  document.getElementById('daily-done-screen').classList.add('show');
+}
+
+function startDailyAnyway() {
+  document.getElementById('daily-done-screen').classList.remove('show');
+  initGame();
+}
+
 /* ── Başlatma ── */
 window.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);
@@ -863,6 +964,12 @@ window.addEventListener('DOMContentLoaded', () => {
   if (d && ['easy', 'medium', 'hard'].includes(d)) difficulty = d;
   if (m && ['normal', 'timed', 'endless'].includes(m)) gameMode = m;
   isDailyMode = params.get('daily') === '1';
+
+  if (isDailyMode) {
+    const result = getDailyResult(difficulty);
+    if (result) { showDailyDoneScreen(result); return; }
+  }
+
   initGame();
 
   // Müzik: ilk etkileşimde başlat (AudioContext policy)

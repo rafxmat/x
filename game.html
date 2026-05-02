@@ -20,25 +20,35 @@
 
   <!-- Header -->
   <header class="game-header">
-    <a href="index.html" class="back-link" title="Zorluk değiştirmek için menüye dön"><span class="back-arrow">←</span> menü</a>
-    <div class="game-logo">RAF<span class="x">×</span></div>
-    <span class="diff-badge" id="diff-badge"></span>
-    <span class="mode-badge" id="mode-badge" style="display:none"></span>
-    <div class="header-spacer"></div>
-    <div class="stat-group">
-      <div class="stat-item">
-        <span class="stat-val" id="timer-val">0:00</span>
-        <span class="stat-label">süre</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-val" id="moves-val">0</span>
-        <span class="stat-label">hamle</span>
+
+    <!-- Sol: Duraklat -->
+    <div class="header-left">
+      <button class="hdr-pause-btn" id="hdr-pause-btn" onclick="openPauseMenu()" title="Oyunu duraklat">⏸</button>
+    </div>
+
+    <!-- Orta: Süre + Hamle -->
+    <div class="header-center">
+      <div class="stat-group">
+        <div class="stat-item">
+          <span class="stat-val" id="timer-val">0:00</span>
+          <span class="stat-label">süre</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-val" id="moves-val">0</span>
+          <span class="stat-label">hamle</span>
+        </div>
       </div>
     </div>
-    <button class="hint-btn" id="hint-btn" onclick="useHint()" title="İpucu kullan (her ipucu 1 yıldız kaybettirir)">💡 <span class="hint-count">3</span></button>
-    <button class="pes-btn" id="pes-btn" onclick="onPes()" title="Sayıları otomatik yerleştir">🏳 pes</button>
-    <button class="new-btn" onclick="initGame()">↻</button>
 
+    <!-- Sağ: İpucu + Pes -->
+    <div class="header-right">
+      <button class="hint-btn" id="hint-btn" onclick="useHint()" title="İpucu kullan (her ipucu 1 yıldız kaybettirir)">💡 <span class="hint-count">3</span></button>
+      <button class="pes-btn" id="pes-btn" onclick="onPes()" title="Sayıları otomatik yerleştir">🏳 pes</button>
+    </div>
+
+    <!-- JS referansları için gizli -->
+    <span class="diff-badge" id="diff-badge" style="display:none"></span>
+    <span class="mode-badge" id="mode-badge" style="display:none"></span>
 
   </header>
 
@@ -93,6 +103,84 @@
     <div class="win-daily-badge" id="win-daily-badge" style="display:none">📅 Günlük Bulmaca</div>
     <div class="win-actions">
 <button class="btn btn-primary" onclick="initGame()">Tekrar</button>
+      <a class="btn btn-ghost btn-sm" href="index.html">Menü</a>
+    </div>
+  </div>
+</div>
+
+<!-- Duraklama Menüsü -->
+<div id="pause-menu">
+  <div class="pause-card">
+    <div class="pause-card-title">⏸ Duraklatıldı</div>
+    <div class="pause-card-info" id="pause-card-info"></div>
+    <div class="pause-card-actions">
+      <button class="pause-action resume" onclick="closePauseMenu()">
+        <span class="pause-action-icon">▶</span> Devam Et
+      </button>
+      <button class="pause-action newgame" onclick="pauseMenuNewGame()">
+        <span class="pause-action-icon">🔄</span> Yeni Oyun
+      </button>
+      <button class="pause-action sound" id="pause-sound-btn" onclick="togglePauseSound()">
+        <span class="pause-action-icon" id="pause-sound-icon">🔊</span>
+        <span id="pause-sound-label">Ses Açık</span>
+      </button>
+      <a class="pause-action quit" href="index.html">
+        <span class="pause-action-icon">🚪</span> Çık
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Pes Onay Dialogu -->
+<div id="pes-confirm" onclick="if(event.target===this)closePesConfirm()">
+  <div class="pes-confirm-card">
+    <div class="pes-confirm-icon">🏳</div>
+    <div class="pes-confirm-title">Pes mi ediyorsun?</div>
+    <div class="pes-confirm-sub">Sayılar otomatik yerleştirilecek, bu işlem geri alınamaz.</div>
+    <div class="pes-confirm-actions">
+      <button class="btn btn-danger" onclick="closePesConfirmAndExecute()">Evet, pes et</button>
+      <button class="btn btn-ghost" onclick="closePesConfirm()">İptal</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pes Ekranı -->
+<div id="pes-screen">
+  <div class="pes-card">
+    <div class="pes-card-icon">🏳</div>
+    <div class="pes-card-title">Pes Edildi</div>
+    <div class="pes-card-sub">Doğru çözüm yerleştirildi</div>
+    <div class="pes-stats">
+      <div class="pes-stat">
+        <div class="pes-stat-val" id="pes-correct">0</div>
+        <div class="pes-stat-label">Doğru Raf</div>
+      </div>
+      <div class="pes-stat">
+        <div class="pes-stat-val" id="pes-time">—</div>
+        <div class="pes-stat-label">Süre</div>
+      </div>
+      <div class="pes-stat">
+        <div class="pes-stat-val" id="pes-moves">0</div>
+        <div class="pes-stat-label">Hamle</div>
+      </div>
+    </div>
+    <div class="pes-actions">
+      <button class="btn btn-primary" onclick="initGame()">Tekrar</button>
+      <a class="btn btn-ghost btn-sm" href="index.html">Menü</a>
+    </div>
+  </div>
+</div>
+
+<!-- Günlük Bulmaca Zaten Oynanmış -->
+<div id="daily-done-screen">
+  <div class="daily-done-card">
+    <div class="daily-done-icon">📅</div>
+    <div class="daily-done-title">Bugün oynadın</div>
+    <div class="daily-done-sub" id="daily-done-sub"></div>
+    <div class="daily-done-stars" id="daily-done-stars"></div>
+    <div class="daily-done-stats" id="daily-done-stats"></div>
+    <div class="daily-done-actions">
+      <button class="btn btn-primary" onclick="startDailyAnyway()">Yine de oyna</button>
       <a class="btn btn-ghost btn-sm" href="index.html">Menü</a>
     </div>
   </div>

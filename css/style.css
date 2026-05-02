@@ -178,6 +178,12 @@ a { color: inherit; text-decoration: none; }
 }
 .btn-ghost:hover { border-color: var(--text); color: var(--text); }
 
+.btn-danger {
+  background: var(--red); color: #fff;
+  border-color: var(--red);
+}
+.btn-danger:hover { opacity: .88; transform: translateY(-1px); }
+
 .btn-sm { padding: 7px 14px; font-size: 0.8rem; min-height: 36px; }
 
 /* ════════════════════════════════════════
@@ -226,12 +232,6 @@ a { color: inherit; text-decoration: none; }
   box-shadow: 0 6px 18px rgba(212,240,60,.35);
 }
 
-/* Eski profil kartı — kullanılmıyor ama class bozulmasın */
-.nav-profile { display: none; }
-.np-header, .np-avatar, .np-meta, .np-title, .np-detail-btn,
-.np-stats, .np-stat-row, .np-stat-sep, .np-stat-val, .np-stat-lbl,
-.np-ach-wrap, .np-ach-label, .np-ach-grid, .np-ach-chip,
-#np-ach-count { display: none; }
 
 /* ── Profil Modali ── */
 #profile-modal {
@@ -1001,11 +1001,26 @@ body:has(.game-page) {
 /* ── Header ── */
 .game-header {
   width: 100%; max-width: 1100px;
-  display: flex; align-items: center; gap: 14px;
+  display: flex; align-items: center; justify-content: space-between; gap: 0;
   margin-bottom: 22px;
   padding-bottom: 16px;
   border-bottom: 1px solid var(--border);
 }
+
+/* ── Header Bölümleri ── */
+.header-left   { display: flex; align-items: center; }
+.header-center { display: flex; align-items: center; justify-content: center; }
+.header-right  { display: flex; align-items: center; gap: 8px; }
+
+/* Duraklat butonu */
+.hdr-pause-btn {
+  background: transparent; border: 1px solid var(--border2);
+  color: var(--muted3); border-radius: var(--r);
+  padding: 7px 16px; font-size: 1rem; line-height: 1;
+  cursor: pointer; transition: color .15s, border-color .15s, background .15s;
+  font-family: var(--mono);
+}
+.hdr-pause-btn:hover { color: var(--text); border-color: var(--text); background: var(--panel); }
 
 .back-link {
   font-family: var(--mono); font-size: 0.68rem; color: var(--muted3);
@@ -1312,6 +1327,7 @@ body:has(.game-page) {
   border-color: var(--accent);
   box-shadow: 0 14px 36px rgba(0,0,0,.6), 0 0 24px rgba(212,240,60,.2); cursor: grabbing;
   will-change: transform;
+  transition: none;
 }
 
 /* ════════════════════════════════════════
@@ -1728,13 +1744,10 @@ body:has(.game-page) {
   .how-steps { grid-template-columns: repeat(2, 1fr); }
 
   .game-page   { padding: 12px 12px 48px; }
-  .game-header { flex-wrap: wrap; gap: 8px; padding-bottom: 12px; margin-bottom: 14px; }
-  .header-spacer { display: none; }
-  .game-logo   { display: none; }
-  .back-link   { font-size: 0.62rem; padding: 5px 10px; }
-  .diff-badge  { display: none; }
-  .new-btn     { font-size: 0.62rem; padding: 5px 12px; }
+  .game-header { gap: 0; padding-bottom: 12px; margin-bottom: 14px; }
+  .hdr-pause-btn { padding: 5px 11px; font-size: 0.9rem; }
   .pes-btn     { font-size: 0.62rem; padding: 5px 12px; }
+  .hint-btn    { font-size: 0.62rem; padding: 5px 12px; }
   .stat-val    { font-size: 0.95rem; }
   .stat-item   { padding: 3px 10px; }
   .progress-wrap { margin-bottom: 12px; }
@@ -1764,13 +1777,12 @@ body:has(.game-page) {
   .section-title { font-size: 0.7rem; }
 
   .game-page { padding: 10px 8px 40px; }
-  .game-header { gap: 6px; padding-bottom: 10px; }
-  .game-logo { font-size: 1.15rem; }
-  .back-link { padding: 4px 8px; }
+  .game-header { gap: 0; padding-bottom: 10px; }
+  .hdr-pause-btn { padding: 4px 10px; font-size: 0.85rem; }
   .stat-val  { font-size: 0.88rem; }
   .stat-item { padding: 2px 8px; }
-  .new-btn   { padding: 5px 10px; }
   .pes-btn   { padding: 5px 10px; }
+  .hint-btn  { padding: 5px 10px; }
 
   #game-area { grid-template-columns: repeat(2, 1fr); gap: 6px; }
   .shelf { min-height: 96px; padding: 10px 8px 8px; gap: 6px; }
@@ -1854,6 +1866,185 @@ body:has(.game-page) {
   border: 1px solid var(--border2); color: var(--muted3);
   white-space: nowrap;
   background: rgba(255,255,255,.03);
+}
+
+/* ════════════════════════════════════════
+   SÜRE DOLDU EKRANI
+════════════════════════════════════════ */
+
+/* ════════════════════════════════════════
+   PES EKRANI
+════════════════════════════════════════ */
+
+#pes-screen {
+  display: none; position: fixed; inset: 0;
+  background: rgba(8,7,5,.85); z-index: 500;
+  align-items: center; justify-content: center;
+}
+#pes-screen.show { display: flex; }
+
+.pes-card {
+  background: var(--panel);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-lg);
+  padding: 32px 28px;
+  width: min(380px, 92vw);
+  display: flex; flex-direction: column;
+  align-items: center; gap: 14px;
+  box-shadow: var(--shadow-lg);
+}
+
+.pes-card-icon  { font-size: 2.8rem; line-height: 1; }
+.pes-card-title {
+  font-family: var(--sans); font-size: 1.6rem; font-weight: 800;
+  letter-spacing: -1px; color: var(--muted3);
+}
+.pes-card-sub {
+  font-family: var(--mono); font-size: 0.64rem;
+  color: var(--muted3); text-transform: uppercase; letter-spacing: 1.5px;
+}
+
+.pes-stats {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 1px; background: var(--border); width: 100%;
+  border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden;
+}
+.pes-stat {
+  background: var(--bg); padding: 12px 6px;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+}
+.pes-stat-val {
+  font-family: var(--mono); font-size: 1.05rem; font-weight: 700; color: var(--text);
+}
+.pes-stat-label {
+  font-family: var(--mono); font-size: 0.55rem; color: var(--muted3);
+  text-transform: uppercase; letter-spacing: 1px;
+}
+
+.pes-actions { display: flex; gap: 6px; width: 100%; }
+.pes-actions .btn { flex: 1; }
+
+[data-theme="light"] .pes-card {
+  box-shadow: 0 8px 28px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.9);
+}
+
+/* ── Günlük bitmişse ekranı ── */
+#daily-done-screen {
+  display: none; position: fixed; inset: 0; z-index: 900;
+  background: rgba(12,11,9,.82); backdrop-filter: blur(6px);
+  align-items: center; justify-content: center;
+}
+#daily-done-screen.show { display: flex; }
+.daily-done-card {
+  background: var(--panel2); border: 1px solid var(--border2);
+  border-radius: var(--r-lg); padding: 32px 28px 28px;
+  text-align: center; max-width: 320px; width: 90%;
+  display: flex; flex-direction: column; gap: 12px;
+  box-shadow: var(--shadow-lg);
+}
+.daily-done-icon  { font-size: 2.2rem; }
+.daily-done-title { font-size: 1.25rem; font-weight: 700; color: var(--text); }
+.daily-done-sub   { font-size: 0.82rem; color: var(--muted3); }
+.daily-done-stars { font-size: 1.8rem; letter-spacing: 4px; margin: 4px 0; }
+.daily-done-stats {
+  display: flex; gap: 24px; justify-content: center; margin: 4px 0;
+}
+.daily-done-stat { display: flex; flex-direction: column; gap: 2px; }
+.daily-done-stat-val   { font-family: var(--mono); font-weight: 700; font-size: 1.1rem; color: var(--text); }
+.daily-done-stat-label { font-size: 0.72rem; color: var(--muted3); }
+.daily-done-actions    { display: flex; gap: 10px; justify-content: center; margin-top: 8px; flex-wrap: wrap; }
+
+/* ════════════════════════════════════════
+   DURAKLAMA MENÜSÜ
+════════════════════════════════════════ */
+
+#pause-menu {
+  display: none; position: fixed; inset: 0;
+  background: rgba(8,7,5,.88); z-index: 700;
+  align-items: center; justify-content: center;
+}
+#pause-menu.show { display: flex; }
+
+.pause-card {
+  background: var(--panel);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-lg);
+  padding: 28px 24px;
+  width: min(320px, 90vw);
+  display: flex; flex-direction: column;
+  gap: 18px;
+  box-shadow: var(--shadow-lg);
+}
+.pause-card-title {
+  font-family: var(--sans); font-size: 1.15rem; font-weight: 700;
+  color: var(--text); text-align: center;
+}
+.pause-card-info {
+  font-family: var(--mono); font-size: 0.6rem;
+  color: var(--muted3); text-transform: uppercase;
+  letter-spacing: 1.5px; text-align: center;
+  margin-top: -10px;
+}
+.pause-card-actions {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.pause-action {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 16px;
+  background: var(--panel2); border: 1px solid var(--border2);
+  border-radius: var(--r); color: var(--text);
+  font-family: var(--sans); font-size: 0.9rem; font-weight: 600;
+  cursor: pointer; text-decoration: none;
+  transition: background .15s, border-color .15s;
+}
+.pause-action:hover { background: var(--border); border-color: var(--muted3); }
+.pause-action-icon { font-size: 1.05rem; width: 22px; text-align: center; flex-shrink: 0; }
+
+.pause-action.resume { border-color: var(--accent); color: var(--accent); }
+.pause-action.resume:hover { background: rgba(212,240,60,.1); }
+
+.pause-action.quit { color: var(--red); border-color: var(--red); }
+.pause-action.quit:hover { background: rgba(255,69,69,.1); }
+
+[data-theme="light"] .pause-card {
+  box-shadow: 0 8px 28px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.9);
+}
+
+/* ════════════════════════════════════════
+   PES ONAY DIALOGU
+════════════════════════════════════════ */
+
+#pes-confirm {
+  display: none; position: fixed; inset: 0;
+  background: rgba(8,7,5,.75); z-index: 600;
+  align-items: center; justify-content: center;
+}
+#pes-confirm.show { display: flex; }
+
+.pes-confirm-card {
+  background: var(--panel);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-lg);
+  padding: 28px 24px;
+  width: min(340px, 90vw);
+  display: flex; flex-direction: column;
+  align-items: center; gap: 10px;
+  box-shadow: var(--shadow-lg);
+}
+.pes-confirm-icon  { font-size: 2rem; line-height: 1; }
+.pes-confirm-title {
+  font-family: var(--sans); font-size: 1.15rem; font-weight: 700; color: var(--text);
+}
+.pes-confirm-sub {
+  font-family: var(--mono); font-size: 0.6rem;
+  color: var(--muted3); text-transform: uppercase;
+  letter-spacing: 1.4px; text-align: center; line-height: 1.6;
+}
+.pes-confirm-actions { display: flex; gap: 8px; width: 100%; margin-top: 8px; }
+.pes-confirm-actions .btn { flex: 1; }
+
+[data-theme="light"] .pes-confirm-card {
+  box-shadow: 0 8px 28px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.9);
 }
 
 /* ════════════════════════════════════════
