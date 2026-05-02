@@ -5,6 +5,14 @@ let _ghostEl       = null;
 let _clickSelected = null; // { fromShelf, numIdx } — tıkla modu için
 let _dropHandler   = null; // game.js tarafından initGame'de set edilir
 
+// rAF throttle için
+let _rafPending  = false;
+let _pendingX    = 0;
+let _pendingY    = 0;
+
+// touch drag-over takibi — querySelectorAll'ı önler
+let _lastDragOverEl = null;
+
 function getDragState()        { return _dragState; }
 function clearDragState()      { _dragState = null; }
 function getClickSelected()    { return _clickSelected; }
@@ -13,19 +21,17 @@ function setDropHandler(fn)    { _dropHandler = fn; }
 
 /* ── Tıkla: chip seç ── */
 function onChipClick(e) {
-  e.stopPropagation(); // raf click handler'ını tetikleme
+  e.stopPropagation();
   const chip      = e.currentTarget;
   const fromShelf = parseInt(chip.dataset.shelfId);
   const numIdx    = parseInt(chip.dataset.numIdx);
 
-  // Aynı chip'e tekrar basılırsa seçimi kaldır
   if (_clickSelected && _clickSelected.fromShelf === fromShelf && _clickSelected.numIdx === numIdx) {
     _clickSelected = null;
     render(true);
     return;
   }
 
-  // Farklı chip → seç
   sndPickup();
   _clickSelected = { fromShelf, numIdx };
   render(true);
@@ -39,7 +45,6 @@ function onShelfClickForMove(shelfId) {
 
   if (fromShelf === shelfId) { render(true); return; }
 
-  // game.js'in dropOnShelf'ini kayıtlı handler üzerinden çağır
   _dragState = { fromShelf, numIdx };
   _dropHandler?.(shelfId);
 }
@@ -69,21 +74,18 @@ let _scrollAF = null;
 function startAutoScroll(clientY) {
   stopAutoScroll();
   const vh = window.innerHeight;
-  const zone = vh * 0.2; // alt/üst %20 tetik bölgesi
+  const zone = vh * 0.2;
 
   let speed = 0;
   if (clientY > vh - zone) {
-    // Alta yakın: ne kadar yakınsa o kadar hızlı
     speed = Math.round(((clientY - (vh - zone)) / zone) * 12);
   } else if (clientY < zone) {
-    // Üste yakın
     speed = -Math.round(((zone - clientY) / zone) * 12);
   }
 
   if (speed === 0) return;
 
   function step() {
-    // Hem window hem de scroll container'ı (game-page) kaydır
     window.scrollBy(0, speed);
     const page = document.querySelector('.game-page');
     if (page) page.scrollTop += speed;
@@ -108,9 +110,14 @@ function onTouchStart(e) {
     const t = ev.touches[0];
     moveGhost(t.clientX, t.clientY);
     startAutoScroll(t.clientY);
-    document.querySelectorAll('.shelf:not(.locked)').forEach(s => s.classList.remove('drag-over'));
-    const hit = document.elementFromPoint(t.clientX, t.clientY)?.closest?.('.shelf:not(.locked)');
-    if (hit) hit.classList.add('drag-over');
+
+    // querySelectorAll yerine: önceki elementi temizle, yenisini bul
+    const hit = document.elementFromPoint(t.clientX, t.clientY)?.closest?.('.shelf:not(.locked)') || null;
+    if (hit !== _lastDragOverEl) {
+      _lastDragOverEl?.classList.remove('drag-over');
+      hit?.classList.add('drag-over');
+      _lastDragOverEl = hit;
+    }
   };
   const onEnd = ev => {
     stopAutoScroll();
@@ -137,18 +144,30 @@ function startDrag(chip, x, y) {
   _ghostEl.className = 'num-chip ghost';
   _ghostEl.textContent = _dragState.val;
   document.body.appendChild(_ghostEl);
-  moveGhost(x, y);
+  // transform'u hemen ayarla (left/top değil)
+  _ghostEl.style.transform = `translate(${x - 22}px, ${y - 16}px) scale(1.12) rotate(2deg)`;
 }
 
+/* Ghost'u transform ile taşı — rAF ile throttle edilir */
 function moveGhost(x, y) {
   if (!_ghostEl) return;
-  _ghostEl.style.left = (x - 22) + 'px';
-  _ghostEl.style.top  = (y - 16) + 'px';
+  _pendingX = x;
+  _pendingY = y;
+  if (_rafPending) return;
+  _rafPending = true;
+  requestAnimationFrame(() => {
+    _rafPending = false;
+    if (!_ghostEl) return;
+    _ghostEl.style.transform = `translate(${_pendingX - 22}px, ${_pendingY - 16}px) scale(1.12) rotate(2deg)`;
+  });
 }
 
 function killGhost() {
   if (_ghostEl) { _ghostEl.remove(); _ghostEl = null; }
-  document.querySelectorAll('.shelf').forEach(s => s.classList.remove('drag-over'));
+  _rafPending = false;
+  // drag-over sadece takip ettiğimiz elementten kaldırılır
+  _lastDragOverEl?.classList.remove('drag-over');
+  _lastDragOverEl = null;
   document.querySelectorAll('.num-chip.dragging').forEach(c => c.classList.remove('dragging'));
 }
 

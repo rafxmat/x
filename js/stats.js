@@ -445,6 +445,15 @@ const ACHIEVEMENTS = [
     check: s => s.byDiff.easy.wins >= 1 && s.byDiff.medium.wins >= 1 && s.byDiff.hard.wins >= 1,
   },
 
+  /* ── Toplam hamle ── */
+  {
+    id: 'moves1000',
+    icon: '🎲',
+    name: 'Bin Hamle',
+    desc: 'Toplam 1000 hamle gerçekleştir',
+    check: s => s.totalMoves >= 1000,
+  },
+
   /* ── Toplam süre ── */
   {
     id: 'hour2',
