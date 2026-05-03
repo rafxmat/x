@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<script>(function(){var t=localStorage.getItem('rafx_theme');document.documentElement.dataset.theme=(t==='light')?'light':'dark';})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAF× — Sayfa Bulunamadı</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#d4f03c">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<style>
+  .not-found {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    gap: 1.2rem;
+  }
+  .not-found-code {
+    font-size: clamp(5rem, 20vw, 9rem);
+    font-weight: 900;
+    line-height: 1;
+    color: var(--accent, #d4f03c);
+    letter-spacing: -4px;
+    opacity: 0.15;
+    user-select: none;
+  }
+  .not-found-logo {
+    font-size: clamp(2rem, 8vw, 3.2rem);
+    font-weight: 900;
+    color: var(--text, #ede7d9);
+    letter-spacing: 2px;
+    margin-top: -1rem;
+  }
+  .not-found-logo .x { color: var(--accent, #d4f03c); }
+  .not-found-title {
+    font-size: 1.1rem;
+    color: var(--muted, #8c8375);
+    margin-top: 0.2rem;
+  }
+  .not-found-btn {
+    margin-top: 1rem;
+    display: inline-block;
+    padding: 0.75rem 2rem;
+    background: var(--accent, #d4f03c);
+    color: #0c0b09;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .not-found-btn:hover { opacity: 0.85; }
+</style>
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FNB9PJZTYT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FNB9PJZTYT');
+</script>
+</head>
+<body>
+
+<div class="not-found">
+  <div class="not-found-code">404</div>
+  <div class="not-found-logo">RAF<span class="x">×</span></div>
+  <div class="not-found-title">Aradığın sayfa bulunamadı.</div>
+  <a href="index.html" class="not-found-btn">Ana Sayfaya Dön</a>
+</div>
+
+</body>
+</html>

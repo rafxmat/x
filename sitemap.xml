@@ -2,13 +2,13 @@
 <urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
 
   <url>
-    <loc>/index.html</loc>
+    <loc>https://rafxmat.github.io/x/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 
   <url>
-    <loc>/achievements.html</loc>
+    <loc>https://rafxmat.github.io/x/achievements.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
