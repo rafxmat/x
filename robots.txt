@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /game.html
+Disallow: /profile.html
+Disallow: /stats.html
+Disallow: /settings.html
+
+Sitemap: /sitemap.xml
