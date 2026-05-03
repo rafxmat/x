@@ -43,6 +43,15 @@
     <div class="ach-sheet-icon" id="ach-sheet-icon"></div>
     <div class="ach-sheet-name" id="ach-sheet-name"></div>
     <div class="ach-sheet-desc" id="ach-sheet-desc"></div>
+    <div class="ach-sheet-progress" id="ach-sheet-progress">
+      <div class="ach-sheet-progress-track">
+        <div class="ach-sheet-progress-bar" id="ach-sheet-progress-bar"></div>
+      </div>
+      <div class="ach-sheet-progress-labels">
+        <span id="ach-sheet-progress-text"></span>
+        <span id="ach-sheet-progress-pct"></span>
+      </div>
+    </div>
     <div class="ach-sheet-status" id="ach-sheet-status"></div>
   </div>
 </div>
@@ -52,16 +61,87 @@
 <script src="js/theme.js"></script>
 <script>
 
+function getAchProgress(id, s) {
+  const map = {
+    first:      { cur: s.totalWins,                    max: 1,   label: 'kazanıldı' },
+    ten:        { cur: s.totalWins,                    max: 10,  label: 'kazanıldı' },
+    fifty:      { cur: s.totalWins,                    max: 50,  label: 'kazanıldı' },
+    daily:      { cur: s.dailyWins,                    max: 1,   label: 'günlük' },
+    streak7:    { cur: s.bestStreak,                   max: 7,   label: 'gün' },
+    timed:      { cur: s.timed.wins,                   max: 1,   label: 'kazanıldı' },
+    endless20:  { cur: s.endless.best,                 max: 20,  label: 'raf' },
+    easy_win:   { cur: s.byDiff.easy.wins,             max: 1,   label: 'kazanıldı' },
+    medium_win: { cur: s.byDiff.medium.wins,           max: 1,   label: 'kazanıldı' },
+    hard_win:   { cur: s.byDiff.hard.wins,             max: 1,   label: 'kazanıldı' },
+    daily10:    { cur: s.dailyWins,                    max: 10,  label: 'günlük' },
+    endless10:  { cur: s.endless.best,                 max: 10,  label: 'raf' },
+    endless50:  { cur: s.endless.best,                 max: 50,  label: 'raf' },
+    games100:   { cur: s.totalGames,                   max: 100, label: 'oyun' },
+    hour:       { cur: Math.floor(s.totalTime / 60),   max: 60,  label: 'dakika' },
+    wins25:     { cur: s.totalWins,                    max: 25,  label: 'kazanıldı' },
+    wins100:    { cur: s.totalWins,                    max: 100, label: 'kazanıldı' },
+    wins250:    { cur: s.totalWins,                    max: 250, label: 'kazanıldı' },
+    wins500:    { cur: s.totalWins,                    max: 500, label: 'kazanıldı' },
+    games50:    { cur: s.totalGames,                   max: 50,  label: 'oyun' },
+    games200:   { cur: s.totalGames,                   max: 200, label: 'oyun' },
+    games500:   { cur: s.totalGames,                   max: 500, label: 'oyun' },
+    endless5:   { cur: s.endless.best,                 max: 5,   label: 'raf' },
+    endless30:  { cur: s.endless.best,                 max: 30,  label: 'raf' },
+    endless100: { cur: s.endless.best,                 max: 100, label: 'raf' },
+    endless_go: { cur: s.endless.games,                max: 5,   label: 'oyun' },
+    streak3:    { cur: s.bestStreak,                   max: 3,   label: 'gün' },
+    streak14:   { cur: s.bestStreak,                   max: 14,  label: 'gün' },
+    streak30:   { cur: s.bestStreak,                   max: 30,  label: 'gün' },
+    daily5:     { cur: s.dailyWins,                    max: 5,   label: 'günlük' },
+    daily25:    { cur: s.dailyWins,                    max: 25,  label: 'günlük' },
+    daily50:    { cur: s.dailyWins,                    max: 50,  label: 'günlük' },
+    timed5:     { cur: s.timed.wins,                   max: 5,   label: 'kazanıldı' },
+    timed10:    { cur: s.timed.wins,                   max: 10,  label: 'kazanıldı' },
+    timed_play: { cur: s.timed.games,                  max: 10,  label: 'oyun' },
+    easy10:     { cur: s.byDiff.easy.wins,             max: 10,  label: 'kazanıldı' },
+    medium5:    { cur: s.byDiff.medium.wins,           max: 5,   label: 'kazanıldı' },
+    medium10:   { cur: s.byDiff.medium.wins,           max: 10,  label: 'kazanıldı' },
+    hard5:      { cur: s.byDiff.hard.wins,             max: 5,   label: 'kazanıldı' },
+    hard10:     { cur: s.byDiff.hard.wins,             max: 10,  label: 'kazanıldı' },
+    moves1000:  { cur: s.totalMoves,                   max: 1000,label: 'hamle' },
+    hour2:      { cur: Math.floor(s.totalTime / 60),   max: 120, label: 'dakika' },
+    hour5:      { cur: Math.floor(s.totalTime / 60),   max: 300, label: 'dakika' },
+    hour10:     { cur: Math.floor(s.totalTime / 60),   max: 600, label: 'dakika' },
+    alldiff:    {
+      cur: (s.byDiff.easy.wins >= 1 ? 1 : 0) + (s.byDiff.medium.wins >= 1 ? 1 : 0) + (s.byDiff.hard.wins >= 1 ? 1 : 0),
+      max: 3, label: 'zorluk'
+    },
+  };
+  return map[id] || null;
+}
+
 function showAchDetail(id) {
   const a = ACHIEVEMENTS.find(x => x.id === id);
   if (!a) return;
   const unlocked = getUnlockedIds().has(id);
+
   document.getElementById('ach-sheet-icon').textContent  = a.icon;
   document.getElementById('ach-sheet-icon').className    = 'ach-sheet-icon' + (unlocked ? '' : ' locked');
   document.getElementById('ach-sheet-name').textContent  = a.name;
   document.getElementById('ach-sheet-desc').textContent  = a.desc;
   document.getElementById('ach-sheet-status').textContent = unlocked ? '✓ Kazanıldı' : 'Henüz kazanılmadı';
   document.getElementById('ach-sheet-status').className   = 'ach-sheet-status ' + (unlocked ? 'unlocked' : 'locked');
+
+  const stats    = getStats();
+  const progress = getAchProgress(id, stats);
+  const progEl   = document.getElementById('ach-sheet-progress');
+  if (progress) {
+    const cur  = Math.min(progress.cur, progress.max);
+    const pct  = Math.round((cur / progress.max) * 100);
+    document.getElementById('ach-sheet-progress-text').textContent = `${cur} / ${progress.max} ${progress.label}`;
+    document.getElementById('ach-sheet-progress-pct').textContent  = `${pct}%`;
+    document.getElementById('ach-sheet-progress-bar').style.width  = pct + '%';
+    document.getElementById('ach-sheet-progress-bar').className    = 'ach-sheet-progress-bar' + (unlocked ? ' done' : '');
+    progEl.style.display = '';
+  } else {
+    progEl.style.display = 'none';
+  }
+
   document.getElementById('ach-sheet-overlay').classList.add('show');
 }
 

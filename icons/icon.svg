@@ -1,6 +1,70 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#0c0b09" rx="90"/>
-  <text font-family="'Arial Black','Impact',sans-serif" font-weight="900" font-size="172" text-anchor="middle" dominant-baseline="central" x="256" y="270">
-    <tspan fill="#ede7d9">RAF</tspan><tspan fill="#d4f03c">×</tspan>
-  </text>
+  <defs>
+    <!-- Arka plan gradyanı -->
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e1b12"/>
+      <stop offset="100%" stop-color="#0c0b09"/>
+    </linearGradient>
+    <!-- × sembolü arkasındaki ışıma -->
+    <radialGradient id="glow" cx="50%" cy="58%" r="44%">
+      <stop offset="0%" stop-color="#d4f03c" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#d4f03c" stop-opacity="0"/>
+    </radialGradient>
+    <!-- × için parlama filtresi -->
+    <filter id="xglow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="14" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <!-- RAF metni için hafif gölge -->
+    <filter id="txtshadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="#000" flood-opacity="0.6"/>
+    </filter>
+    <!-- Kenarlık için yuvarlak kare kırpma alanı -->
+    <clipPath id="clip">
+      <rect width="512" height="512" rx="90"/>
+    </clipPath>
+  </defs>
+
+  <!-- Arka plan -->
+  <rect width="512" height="512" fill="url(#bg)" rx="90"/>
+
+  <!-- İnce üst vurgu çizgisi -->
+  <rect x="0" y="0" width="512" height="512" rx="90"
+        fill="none" stroke="#ede7d9" stroke-opacity="0.06" stroke-width="3"/>
+
+  <!-- × glow lekeleri -->
+  <ellipse cx="256" cy="300" rx="190" ry="155" fill="url(#glow)"/>
+
+  <!-- Raf çizgileri (oyun teması) -->
+  <line x1="80" y1="156" x2="432" y2="156" stroke="#ede7d9" stroke-opacity="0.07" stroke-width="2" stroke-linecap="round"/>
+  <line x1="80" y1="168" x2="432" y2="168" stroke="#ede7d9" stroke-opacity="0.04" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- "RAF" yazısı -->
+  <text
+    font-family="'Arial Black', 'Arial Bold', 'Helvetica Neue', sans-serif"
+    font-weight="900"
+    font-size="118"
+    letter-spacing="8"
+    text-anchor="middle"
+    x="256" y="192"
+    fill="#ede7d9"
+    filter="url(#txtshadow)"
+    opacity="0.96">RAF</text>
+
+  <!-- "×" büyük, parlak -->
+  <text
+    font-family="'Arial Black', 'Arial Bold', 'Helvetica Neue', sans-serif"
+    font-weight="900"
+    font-size="286"
+    text-anchor="middle"
+    dominant-baseline="central"
+    x="256" y="358"
+    fill="#d4f03c"
+    filter="url(#xglow)">×</text>
+
+  <!-- Alt vurgu çizgisi -->
+  <rect x="176" y="444" width="160" height="4" rx="2" fill="#d4f03c" opacity="0.35"/>
 </svg>

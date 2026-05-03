@@ -1,4 +1,4 @@
-const CACHE = 'rafx-v6';
+const CACHE = 'rafx-v9';
 const ASSETS = [
   './index.html',
   './game.html',

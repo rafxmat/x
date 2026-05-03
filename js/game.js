@@ -35,6 +35,7 @@ const STARS = {
 };
 
 const TIMED_LIMITS = { easy: 150, medium: 120, hard: 180 };
+const MOVE_LIMITS  = { easy: 60,  medium: 80,  hard: 100 };
 
 function calcStars(sec, mv, diff) {
   const t = STARS[diff];
@@ -44,12 +45,58 @@ function calcStars(sec, mv, diff) {
   return 1;
 }
 
+/* Normal mod: sadece hamle bazlı yıldız (süre yok) */
+function calcNormalStars(mv, diff) {
+  const t = STARS[diff];
+  if (!t) return 1;
+  if (mv <= t.three.moves) return 3;
+  if (mv <= t.two.moves)   return 2;
+  return 1;
+}
+
 /* Final yıldız: ipucu cezası dahil tek doğruluk kaynağı */
 function finalStars() {
   if (gameMode === 'endless') return 0;
-  let stars = calcStars(timerSec, moves, difficulty);
+  let stars = gameMode === 'normal'
+    ? calcNormalStars(moves, difficulty)
+    : calcStars(timerSec, moves, difficulty);
   if (hintsUsed > 0) stars = Math.max(1, stars - hintsUsed);
   return stars;
+}
+
+/* Kalan hamle + canlı yıldız göstergesi (yalnızca normal mod) */
+function updateLiveStars() {
+  if (gameMode !== 'normal') return;
+
+  // Kalan hamle
+  const remainEl  = document.getElementById('live-stars-val');
+  if (remainEl) {
+    const limit     = MOVE_LIMITS[difficulty] || 60;
+    const remaining = Math.max(0, limit - moves);
+    remainEl.textContent = remaining;
+    if      (remaining <= 10) remainEl.style.color = 'var(--red)';
+    else if (remaining <= 20) remainEl.style.color = 'var(--gold)';
+    else                      remainEl.style.color = '';
+  }
+
+  // Canlı yıldız
+  const starEl = document.getElementById('normal-stars-val');
+  if (starEl) {
+    const stars = Math.max(1, calcNormalStars(moves, difficulty) - hintsUsed);
+    const prev  = starEl.dataset.stars !== undefined ? parseInt(starEl.dataset.stars) : 3;
+    const dropped = stars < prev;
+    starEl.innerHTML = [0, 1, 2].map(i => {
+      let cls = 'live-star ' + (i < stars ? 'on' : 'off');
+      if (dropped && i === stars) cls += ' dropping';
+      return `<span class="${cls}">★</span>`;
+    }).join('');
+    starEl.dataset.stars = stars;
+    if (dropped) {
+      setTimeout(() => {
+        starEl.querySelectorAll('.live-star.dropping').forEach(s => s.classList.remove('dropping'));
+      }, 500);
+    }
+  }
 }
 
 /* ── Zamanlayıcı ── */
@@ -83,6 +130,7 @@ function startTimer() {
       if      (timerSec > 180) tv.style.color = 'var(--red)';
       else if (timerSec > 90)  tv.style.color = 'var(--gold)';
       else                     tv.style.color = '';
+      updateLiveStars();
     }
   }, 1000);
 }
@@ -297,6 +345,7 @@ function render(skipSound = false) {
   });
 
   if (page) page.scrollTop = scrollTop;
+  updateLiveStars();
 }
 
 /* ── Pes onay dialogu ── */
@@ -580,11 +629,18 @@ function showStreakOverlay(streak) {
   setTimeout(dismiss, 3800);
 }
 
-/* ── Süre doldu ekranı ── */
+/* ── Süre doldu / Hamle bitti ekranı ── */
 function showFail() {
   updateHintButton();
   const correct  = shelves.filter(s => prevLocked.has(s.id)).length;
   const diffName = { easy: 'Kolay', medium: 'Orta', hard: 'Zor' }[difficulty];
+
+  // Normal modda "Hamle Hakkın Bitti", diğerlerinde "Süre Doldu"
+  const isMoveFail = gameMode === 'normal';
+  const iconEl  = document.querySelector('#fail-screen .fail-icon');
+  const titleEl = document.querySelector('#fail-screen .fail-title');
+  if (iconEl)  iconEl.textContent  = isMoveFail ? '🎯' : '⏱';
+  if (titleEl) titleEl.textContent = isMoveFail ? 'Hamle Hakkın Bitti!' : 'Süre Doldu!';
 
   const newAchs = recordGame({
     difficulty, mode: gameMode,
@@ -705,6 +761,18 @@ function dropOnShelf(toId) {
   moves++;
   _hintCache = null;
   clearDragState();
+
+  // Normal mod hamle limiti kontrolü
+  if (gameMode === 'normal') {
+    const limit = MOVE_LIMITS[difficulty] || 60;
+    if (moves >= limit && !gameOver) {
+      gameOver = true;
+      clearInterval(timerInt);
+      render(true);
+      setTimeout(showFail, 300);
+      return;
+    }
+  }
 
   const p = product(targetShelf.nums);
   if (p !== null && p !== targetShelf.target) sndWrong();
@@ -889,6 +957,31 @@ function initGame() {
   const tv = document.getElementById('timer-val');
   tv.textContent = gameMode === 'timed' ? formatTime(TIMED_LIMITS[difficulty]) : '0:00';
   tv.style.color = '';
+
+  // Normal modda süre yerine canlı yıldız göster
+  const timerItem = document.getElementById('timer-item');
+  const starsItem = document.getElementById('live-stars-item');
+  const isNormal = gameMode === 'normal';
+  if (timerItem) timerItem.style.display = isNormal ? 'none' : '';
+
+  // Kalan hamle alanı
+  if (starsItem) {
+    starsItem.style.display = isNormal ? '' : 'none';
+    const lbl = starsItem.querySelector('.stat-label');
+    if (lbl) lbl.textContent = 'kalan hamle';
+    const sv = document.getElementById('live-stars-val');
+    if (sv) { sv.textContent = MOVE_LIMITS[difficulty] || 60; sv.style.color = ''; }
+  }
+
+  // Canlı yıldız alanı (hamle sayacının yerine)
+  const movesItem       = document.getElementById('moves-item');
+  const normalStarsItem = document.getElementById('normal-stars-item');
+  if (movesItem)       movesItem.style.display       = isNormal ? 'none' : '';
+  if (normalStarsItem) {
+    normalStarsItem.style.display = isNormal ? '' : 'none';
+    const sv = document.getElementById('normal-stars-val');
+    if (sv) { sv.innerHTML = ''; sv.dataset.stars = '3'; }
+  }
 
   // Rozetler
   const diffNames = { easy: 'Kolay', medium: 'Orta', hard: 'Zor' };

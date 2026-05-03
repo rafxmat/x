@@ -34,13 +34,21 @@
     <!-- Orta: Süre + Hamle -->
     <div class="header-center">
       <div class="stat-group">
-        <div class="stat-item">
+        <div class="stat-item" id="timer-item">
           <span class="stat-val" id="timer-val">0:00</span>
           <span class="stat-label">süre</span>
         </div>
-        <div class="stat-item">
+        <div class="stat-item" id="live-stars-item" style="display:none">
+          <span class="stat-val live-stars-wrap" id="live-stars-val"></span>
+          <span class="stat-label">yıldız</span>
+        </div>
+        <div class="stat-item" id="moves-item">
           <span class="stat-val" id="moves-val">0</span>
           <span class="stat-label">hamle</span>
+        </div>
+        <div class="stat-item" id="normal-stars-item" style="display:none">
+          <span class="stat-val live-stars-wrap" id="normal-stars-val"></span>
+          <span class="stat-label">yıldız</span>
         </div>
       </div>
     </div>
