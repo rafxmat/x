@@ -5,7 +5,7 @@
 <script>(function(){var t=localStorage.getItem('rafx_theme');document.documentElement.dataset.theme=(t==='light')?'light':'dark';})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RAF× — Profil</title>
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="dist/style.min.css">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#d4f03c">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -36,106 +36,135 @@
   <div class="profile-body">
 
     <!-- ── Hero ── -->
-    <div class="pp-hero" id="pp-hero"></div>
-
-    <!-- ── Navigasyon ── -->
-    <div class="pp-nav-list">
-
-      <a href="stats.html" class="pp-nav-row">
-        <div class="pp-nav-icon">
-          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="12" width="3" height="6" rx="1"/>
-            <rect x="8.5" y="7" width="3" height="11" rx="1"/>
-            <rect x="15" y="3" width="3" height="15" rx="1"/>
-          </svg>
+    <section class="prf-card prf-hero">
+      <div class="prf-hero-top">
+        <div class="prf-avatar">◈</div>
+        <div class="prf-hero-info">
+          <div class="prf-hero-name">Oyuncu</div>
+          <div class="prf-hero-sub" id="prf-hero-sub">—</div>
         </div>
-        <div class="pp-nav-info">
-          <div class="pp-nav-title">İstatistikler</div>
-          <div class="pp-nav-sub">Rekorlar, süreler, zorluk dağılımı</div>
-        </div>
-        <svg class="pp-nav-arrow" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="7 4 13 10 7 16"/>
-        </svg>
-      </a>
+        <div class="prf-hero-streak" id="prf-hero-streak"></div>
+      </div>
+      <div class="prf-stats-grid" id="prf-hero-stats"></div>
+    </section>
 
-      <a href="achievements.html" class="pp-nav-row">
-        <div class="pp-nav-icon">
-          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M10 2l2.4 4.8 5.3.8-3.85 3.75.91 5.3L10 14.1l-4.76 2.55.91-5.3L2.3 7.6l5.3-.8z"/>
-          </svg>
-        </div>
-        <div class="pp-nav-info">
-          <div class="pp-nav-title">Başarımlar</div>
-          <div class="pp-nav-sub" id="pp-ach-sub">Kazanılan rozetler</div>
-        </div>
-        <svg class="pp-nav-arrow" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="7 4 13 10 7 16"/>
-        </svg>
-      </a>
+    <!-- ── Rekorlar ── -->
+    <section class="prf-card">
+      <div class="prf-card-head">
+        <h2 class="prf-card-title">Rekorlar</h2>
+        <a href="stats.html" class="prf-card-link">Detay →</a>
+      </div>
+      <div class="prf-records" id="prf-diff-rows"></div>
+    </section>
 
-    </div>
+    <!-- ── Başarımlar ── -->
+    <section class="prf-card">
+      <div class="prf-card-head">
+        <h2 class="prf-card-title">Başarımlar</h2>
+        <a href="achievements.html" class="prf-card-link">Tümü →</a>
+      </div>
+      <div class="prf-ach">
+        <div class="prf-ach-bar"><div class="prf-ach-fill" id="prf-ach-fill"></div></div>
+        <div class="prf-ach-meta" id="prf-ach-meta">—</div>
+      </div>
+      <div class="prf-ach-chips" id="prf-ach-chips"></div>
+    </section>
 
   </div>
 </div>
 
-<script src="js/storage.js"></script>
-<script src="js/stats.js"></script>
-<script src="js/theme.js"></script>
+<script src="dist/core.bundle.min.js"></script>
 <script>
+/* ── Yardımcılar ── */
+function formatLongTime(sec) {
+  if (!sec) return '—';
+  if (sec < 60)   return sec + ' sn';
+  if (sec < 3600) return Math.floor(sec / 60) + ' dk';
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  return m === 0 ? h + ' sa' : h + ' sa ' + m + ' dk';
+}
+
+function humanDate(iso) {
+  if (!iso) return '—';
+  const today = new Date().toISOString().slice(0, 10);
+  if (iso === today) return 'Bugün';
+  const yest = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  if (iso === yest) return 'Dün';
+  const d = new Date(iso);
+  return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   const s        = getStats();
+  const records  = getRecords();
   const unlocked = getUnlockedIds();
-  const wins     = s.totalWins;
-  const pct      = s.totalGames > 0 ? Math.round((wins / s.totalGames) * 100) : 0;
-  const avg      = wins > 0 ? formatTime(Math.round(s.totalTime / wins)) : '—';
-  const avgM     = wins > 0 ? Math.round(s.totalMoves / wins) : '—';
 
-  /* Hero */
-  const badges = [];
-  if (s.streak >= 3)                  badges.push(`<span class="pp-badge pp-badge-fire">🔥 ${s.streak} günlük seri</span>`);
-  if (pct >= 80 && s.totalGames >= 5) badges.push(`<span class="pp-badge pp-badge-accent">${pct}% oran</span>`);
-  if (s.endless.best >= 20)           badges.push(`<span class="pp-badge pp-badge-muted">∞ ${s.endless.best} raf</span>`);
+  /* ─── 1. HERO ─── */
+  const wins         = s.totalWins;
+  const pct          = s.totalGames > 0 ? Math.round((wins / s.totalGames) * 100) : 0;
+  const avgTime      = wins > 0 ? formatTime(Math.round(s.totalTime / wins)) : '—';
+  const avgMoves     = wins > 0 ? Math.round(s.totalMoves / wins).toString() : '—';
+  const totalTimeStr = s.totalTime > 0 ? formatLongTime(s.totalTime) : '—';
 
-  document.getElementById('pp-hero').innerHTML = `
-    <div class="pp-hero-top">
-      <div class="pp-avatar">◈</div>
-      <div class="pp-hero-info">
-        <div class="pp-hero-name">Oyuncu</div>
-        ${badges.length ? `<div class="pp-hero-badges">${badges.join('')}</div>` : '<div class="pp-hero-sub">Henüz oyun yok</div>'}
-      </div>
+  const sub = document.getElementById('prf-hero-sub');
+  sub.innerHTML = s.totalGames === 0
+    ? '<span class="prf-hero-empty">Henüz oyun yok — başlamaya hazır mısın?</span>'
+    : `Son oyun · <b>${humanDate(s.lastPlayDate)}</b>`;
+
+  const streakEl = document.getElementById('prf-hero-streak');
+  if (s.streak >= 1) {
+    streakEl.innerHTML = `
+      <span class="prf-flame">🔥</span>
+      <span class="prf-streak-num">${s.streak}</span>
+      <span class="prf-streak-lbl">gün</span>
+    `;
+  } else {
+    streakEl.style.display = 'none';
+  }
+
+  document.getElementById('prf-hero-stats').innerHTML = `
+    <div class="prf-stat"><span class="prf-stat-val">${s.totalGames}</span><span class="prf-stat-lbl">Oyun</span></div>
+    <div class="prf-stat${pct >= 75 && s.totalGames >= 5 ? ' prf-stat-hi' : ''}">
+      <span class="prf-stat-val">${pct}<span class="prf-stat-suffix">%</span></span>
+      <span class="prf-stat-lbl">Oran</span>
     </div>
-    <div class="pp-hero-divider"></div>
-    <div class="pp-hero-stats">
-      <div class="pp-hero-stat">
-        <span class="pp-hero-stat-val">${s.totalGames}</span>
-        <span class="pp-hero-stat-label">Oyun</span>
-      </div>
-      <div class="pp-hero-stat">
-        <span class="pp-hero-stat-val">${wins}</span>
-        <span class="pp-hero-stat-label">Kazanıldı</span>
-      </div>
-      <div class="pp-hero-stat${pct >= 75 && s.totalGames >= 5 ? ' pp-hero-stat-hi' : ''}">
-        <span class="pp-hero-stat-val">${pct}%</span>
-        <span class="pp-hero-stat-label">Oran</span>
-      </div>
-      <div class="pp-hero-stat">
-        <span class="pp-hero-stat-val">${avg}</span>
-        <span class="pp-hero-stat-label">Ort. Süre</span>
-      </div>
-      <div class="pp-hero-stat">
-        <span class="pp-hero-stat-val">${avgM}</span>
-        <span class="pp-hero-stat-label">Ort. Hamle</span>
-      </div>
-      <div class="pp-hero-stat">
-        <span class="pp-hero-stat-val">${s.endless.best || 0}</span>
-        <span class="pp-hero-stat-label">Sonsuz Rekoru</span>
-      </div>
-    </div>
+    <div class="prf-stat"><span class="prf-stat-val">${avgMoves}</span><span class="prf-stat-lbl">Ort. Hamle</span></div>
   `;
 
-  /* Başarım alt yazısı */
-  const sub = document.getElementById('pp-ach-sub');
-  if (sub) sub.textContent = `${unlocked.size} / ${ACHIEVEMENTS.length} kazanıldı`;
+  /* ─── 2. REKORLAR ─── */
+  const DIFF_NAMES = { easy: 'Kolay', medium: 'Orta', hard: 'Zor' };
+  document.getElementById('prf-diff-rows').innerHTML = ['easy', 'medium', 'hard'].map(k => {
+    const d = s.byDiff[k] || { games: 0, wins: 0 };
+    const r = records[k];
+    const hasRecord = r && r.bestTime;
+    return `
+      <div class="prf-rec-row">
+        <span class="prf-diff-tag prf-diff-${k}">${DIFF_NAMES[k]}</span>
+        ${hasRecord
+          ? `<span class="prf-rec-val">${formatTime(r.bestTime)}</span>
+             <span class="prf-rec-sep">·</span>
+             <span class="prf-rec-val">${r.bestMoves} hamle</span>`
+          : `<span class="prf-rec-empty">—</span>`}
+        <span class="prf-rec-games">${d.games} oyun</span>
+      </div>
+    `;
+  }).join('');
+
+  /* ─── 3. BAŞARIMLAR ─── */
+  const total  = ACHIEVEMENTS.length;
+  const ucount = unlocked.size;
+  const apct   = total > 0 ? (ucount / total) * 100 : 0;
+  document.getElementById('prf-ach-fill').style.width = apct + '%';
+  document.getElementById('prf-ach-meta').innerHTML = `<b>${ucount}</b> / ${total} kazanıldı · ${Math.round(apct)}%`;
+
+  const recents = ACHIEVEMENTS.filter(a => unlocked.has(a.id)).slice(-4);
+  const chips = recents.map(a =>
+    `<span class="prf-ach-chip" title="${a.desc}"><span class="prf-ach-chip-icon">${a.icon}</span>${a.name}</span>`
+  ).join('');
+  document.getElementById('prf-ach-chips').innerHTML = chips
+    || '<span class="prf-ach-empty">Henüz başarım yok — ilk oyununu oyna!</span>';
+
 });
 </script>
 

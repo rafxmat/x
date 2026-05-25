@@ -5,7 +5,7 @@
 <script>(function(){var t=localStorage.getItem('rafx_theme');document.documentElement.dataset.theme=(t==='light')?'light':'dark';})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RAF× — Oyna</title>
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="dist/style.min.css">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#d4f03c">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -23,6 +23,8 @@
 </script>
 </head>
 <body>
+
+<div class="math-bg" id="math-bg" aria-hidden="true"></div>
 
 <div class="game-page">
 
@@ -106,27 +108,21 @@
 <!-- Win Screen -->
 <div id="win-screen">
   <div class="win-card">
-    <div class="win-title">Tamamlandı</div>
     <div class="win-stars" id="win-stars"></div>
-    <div class="win-stats">
-      <div class="win-stat">
-        <div class="win-stat-val" id="win-time">—</div>
-        <div class="win-stat-label">Süre</div>
-      </div>
-      <div class="win-stat">
-        <div class="win-stat-val" id="win-moves">—</div>
-        <div class="win-stat-label">Hamle</div>
-      </div>
-      <div class="win-stat">
-        <div class="win-stat-val" id="win-diff">—</div>
-        <div class="win-stat-label">Zorluk</div>
-      </div>
+    <div class="win-meta">
+      <span class="win-meta-val" id="win-time">—</span>
+      <span class="win-meta-sep">·</span>
+      <span class="win-meta-val" id="win-moves">—</span>
+      <span class="win-meta-word">hamle</span>
+      <span class="win-meta-sep">·</span>
+      <span class="win-meta-diff" id="win-diff"></span>
     </div>
-    <div class="win-record" id="win-record" style="display:none">🏆 Yeni Rekor</div>
-    <div class="win-daily-badge" id="win-daily-badge" style="display:none">📅 Günlük Bulmaca</div>
     <div class="win-actions">
-<button class="btn btn-primary" onclick="initGame()">Tekrar</button>
-      <a class="btn btn-ghost btn-sm" href="index.html">Menü</a>
+      <button class="btn btn-primary" onclick="initGame()">Tekrar</button>
+      <div class="win-actions-sub">
+        <button class="btn btn-ghost win-share-btn" id="win-share-btn" onclick="shareResult()">↗ Paylaş</button>
+        <a class="btn btn-ghost" href="index.html">Menü</a>
+      </div>
     </div>
   </div>
 </div>
@@ -142,7 +138,7 @@
         <span class="pause-action-icon">▷</span> Devam Et
       </button>
       <button class="pause-action newgame" onclick="pauseMenuNewGame()">
-        <span class="pause-action-icon"><img src="repeat-button-emoji-clipart-lg.png" alt="Yeni Oyun" style="width:20px;height:20px;object-fit:contain;display:block;"></span> Yeni Oyun
+        <span class="pause-action-icon"><img src="icons/new-game.png" alt="Yeni Oyun" style="width:20px;height:20px;object-fit:contain;display:block;"></span> Yeni Oyun
       </button>
       <button class="pause-action settings" onclick="openInGameSettings()">
         <span class="pause-action-icon">
@@ -280,7 +276,14 @@
       <button class="btn btn-primary" onclick="initGame()">Tekrar</button>
       <a class="btn btn-ghost btn-sm" href="index.html">Menü</a>
     </div>
+    <button class="btn btn-replay" id="replay-btn" onclick="startStepReplay()">▷ Çözümü Adım Adım Gör</button>
   </div>
+</div>
+
+<!-- Replay şeridi (adım adım animasyon sırasında görünür) -->
+<div id="replay-bar" style="display:none">
+  <span id="replay-status">0 / 0 hamle</span>
+  <button class="replay-skip-btn" onclick="skipReplay()">Atla →</button>
 </div>
 
 <!-- Günlük Bulmaca Zaten Oynanmış -->
@@ -325,13 +328,7 @@
   </div>
 </div>
 
-<script src="js/audio.js"></script>
-<script src="js/storage.js"></script>
-<script src="js/stats.js"></script>
-<script src="js/puzzle.js"></script>
-<script src="js/drag.js"></script>
-<script src="js/game.js"></script>
-<script src="js/theme.js"></script>
+<script src="dist/game.bundle.min.js"></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));

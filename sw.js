@@ -1,4 +1,4 @@
-const CACHE = 'rafx-v9';
+const CACHE = 'rafx-v12';
 const ASSETS = [
   './index.html',
   './game.html',
@@ -6,14 +6,10 @@ const ASSETS = [
   './profile.html',
   './achievements.html',
   './stats.html',
-  './css/style.css',
-  './js/audio.js',
-  './js/drag.js',
-  './js/game.js',
-  './js/puzzle.js',
-  './js/stats.js',
-  './js/storage.js',
-  './js/theme.js',
+  './dist/style.min.css',
+  './dist/game.bundle.min.js',
+  './dist/core.bundle.min.js',
+  './dist/settings.bundle.min.js',
   './icons/icon.svg',
   './manifest.json',
 ];
