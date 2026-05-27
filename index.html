@@ -169,6 +169,21 @@
     </div>
   </section>
 
+  <!-- ── Macera Modu ── -->
+  <a href="map.html" class="adventure-row" id="adventure-row">
+    <div class="adventure-row-left">
+      <span class="adventure-row-icon">🗺</span>
+      <div class="adventure-row-meta">
+        <span class="adventure-row-label">Macera Modu</span>
+        <span class="adventure-row-sub" id="adventure-sub">100 seviye · keşfetmeye başla</span>
+      </div>
+    </div>
+    <div class="adventure-row-right">
+      <span class="adventure-row-progress" id="adventure-progress"></span>
+      <span class="adventure-row-cta">Oyna →</span>
+    </div>
+  </a>
+
   <!-- ── Günlük Bulmaca ── -->
   <div class="daily-row" id="daily-row" onclick="openDailyModal()">
     <div class="daily-row-left">
@@ -310,6 +325,22 @@ window.addEventListener('DOMContentLoaded', () => {
 
   updateDiffLinks();
   buildDailyRow();
+
+  // Macera modu ilerlemesi
+  (function buildAdventureRow() {
+    if (typeof getCompletedCount !== 'function') return;
+    const done = getCompletedCount();
+    const stars = getTotalStars();
+    const progEl = document.getElementById('adventure-progress');
+    const subEl  = document.getElementById('adventure-sub');
+    if (done > 0) {
+      if (progEl) progEl.innerHTML = `<b>${done}</b>/100 · ⭐ <b>${stars}</b>`;
+      if (subEl)  subEl.textContent = 'Yolculuğuna devam et';
+    } else {
+      if (progEl) progEl.textContent = '';
+    }
+  })();
+
   (function buildHeroBadges() {
     const s  = getStats();
     const el = document.getElementById('hero-badges');

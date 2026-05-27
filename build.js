@@ -17,6 +17,7 @@ const BUNDLES = {
     'js/audio.js',
     'js/storage.js',
     'js/stats.js',
+    'js/levels.js',
     'js/puzzle.js',
     'js/drag.js',
     'js/confetti.js',
@@ -29,6 +30,7 @@ const BUNDLES = {
   'core.bundle.min.js': [
     'js/storage.js',
     'js/stats.js',
+    'js/levels.js',
     'js/theme.js',
   ],
   'settings.bundle.min.js': [

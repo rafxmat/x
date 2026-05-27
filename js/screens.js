@@ -28,6 +28,13 @@ function showWin() {
   const isRecord = saveRecord(difficulty, timerSec, moves);
   const diffName = { easy: 'Kolay', medium: 'Orta', hard: 'Zor' }[difficulty];
 
+  // ÖNEMLİ: Macera başarımları getCompletedCount/getTotalStars'a bakar.
+  // recordGame içindeki achievement check öncesinde sonucu kaydet.
+  if (isDailyMode) saveDailyResult(difficulty, stars, timerSec, moves);
+  if (currentLevel > 0 && typeof saveLevelResult === 'function') {
+    saveLevelResult(currentLevel, stars, timerSec, moves);
+  }
+
   const newAchs = recordGame({
     difficulty, mode: gameMode,
     seconds: timerSec, moves,
@@ -35,7 +42,6 @@ function showWin() {
     isDaily: isDailyMode,
     hintsUsed,
   });
-  if (isDailyMode) saveDailyResult(difficulty, stars, timerSec, moves);
   newAchs.forEach(a => scheduleAchToast(a));
 
   sndWinMelody();
@@ -44,18 +50,49 @@ function showWin() {
   document.getElementById('win-time').textContent  = timeStr;
   document.getElementById('win-moves').textContent = moves;
   const diffEl = document.getElementById('win-diff');
-  diffEl.textContent   = diffName;
+  diffEl.textContent   = currentLevel > 0 ? `Seviye ${currentLevel}` : diffName;
   diffEl.dataset.diff  = difficulty;
   document.getElementById('win-stars').innerHTML = [0,1,2].map(i =>
     `<span class="win-star${i < stars ? ' win-star-earned' : ' win-star-empty'}" style="animation-delay:${i * 0.13}s">★</span>`
   ).join('');
 
+  // Macera modu: "Sonraki Seviye" butonu + "Haritaya Dön"
+  updateWinActionsForLevel();
 
   document.getElementById('win-screen').classList.add('show');
   updateHintButton();
 
   const streak = getStats().streak;
   if (streak >= 3) setTimeout(() => showStreakOverlay(streak), 900);
+}
+
+/* ── Macera modu için kazanma butonlarını uyarla ── */
+function updateWinActionsForLevel() {
+  const actions = document.querySelector('#win-screen .win-actions');
+  if (!actions) return;
+
+  // Macera modu değilse → varsayılan halini geri yükle
+  if (currentLevel === 0) {
+    actions.innerHTML = `
+      <button class="btn btn-primary" onclick="initGame()">Tekrar</button>
+      <div class="win-actions-sub">
+        <button class="btn btn-ghost win-share-btn" id="win-share-btn" onclick="shareResult()">↗ Paylaş</button>
+        <a class="btn btn-ghost" href="index.html">Menü</a>
+      </div>
+    `;
+    return;
+  }
+
+  // Macera modu → "Sonraki Seviye" + "Haritaya Dön"
+  const nextLvl = currentLevel + 1;
+  const hasNext = nextLvl <= 100;
+  actions.innerHTML = `
+    ${hasNext ? `<a class="btn btn-primary" href="game.html?level=${nextLvl}">Sonraki Seviye →</a>` : '<div class="btn btn-primary" style="opacity:.5;pointer-events:none">Son Seviye!</div>'}
+    <div class="win-actions-sub">
+      <button class="btn btn-ghost" onclick="initGame()">↻ Tekrar</button>
+      <a class="btn btn-ghost" href="map.html">🗺 Harita</a>
+    </div>
+  `;
 }
 
 /* ── Pes ekranı ── */

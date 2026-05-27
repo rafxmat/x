@@ -279,3 +279,9 @@ const sndWinMelody = () => {
     setTimeout(() => tone(f, 'sine', 0.22, 0.13), i * 90)
   );
 };
+
+/* Raf dolu — başka hiçbir yerde kullanılmaz */
+const sndShelfFull = () => {
+  tone(310, 'square',   0.055, 0.11);
+  setTimeout(() => tone(200, 'triangle', 0.10,  0.09), 35);
+};

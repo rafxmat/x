@@ -14,6 +14,7 @@ let gameOver     = false;
 let difficulty   = 'easy';
 let gameMode     = 'normal';   // 'normal' | 'timed' | 'endless'
 let isDailyMode  = false;
+let currentLevel = 0;          // 0 = normal mod, >0 = macera modu seviye no
 let prevCorrect  = 0;
 let prevMoves    = 0;
 let endlessScore = 0;
@@ -264,6 +265,7 @@ function dropOnShelf(toId) {
     clearDragState(); render(true); return;
   }
   if (!sourceShelf || fromShelf === toId) { clearDragState(); render(true); return; }
+  if (targetShelf.nums.length >= 4) { clearDragState(); render(true); showShelfFullToast(); sndShelfFull(); return; }
 
   const val = sourceShelf.nums.splice(numIdx, 1)[0];
   targetShelf.nums.push(val);
@@ -288,6 +290,29 @@ function dropOnShelf(toId) {
 
   render();
   checkDeadlock();
+}
+
+/* ════════════════════════════════════════
+   RAF DOLU TOAST
+════════════════════════════════════════ */
+let _shelfFullTimer = null;
+function showShelfFullToast() {
+  let t = document.querySelector('.shelf-full-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.className = 'shelf-full-toast';
+    t.textContent = 'Raf Dolu';
+    document.body.appendChild(t);
+  }
+  clearTimeout(_shelfFullTimer);
+  // reflow → animasyon sıfırlansın
+  t.classList.remove('show');
+  void t.offsetWidth;
+  t.classList.add('show');
+  _shelfFullTimer = setTimeout(() => {
+    t.classList.remove('show');
+    setTimeout(() => t.remove(), 340);
+  }, 2000);
 }
 
 /* ════════════════════════════════════════
@@ -357,7 +382,11 @@ function initGame() {
   document.getElementById('diff-badge').dataset.diff = difficulty;
 
   let modeLabel = modeNames[gameMode];
-  if (isDailyMode) modeLabel = (modeLabel ? modeLabel + ' · ' : '') + '📅 Günlük';
+  if (isDailyMode)     modeLabel = (modeLabel ? modeLabel + ' · ' : '') + '📅 Günlük';
+  if (currentLevel > 0) {
+    const bossTag = (typeof isBossLevel === 'function' && isBossLevel(currentLevel)) ? ' 👑' : '';
+    modeLabel = `Seviye ${currentLevel}${bossTag}`;
+  }
   modeBadge.textContent   = modeLabel;
   modeBadge.style.display = modeLabel ? '' : 'none';
 
@@ -404,9 +433,19 @@ window.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);
   const d = params.get('d');
   const m = params.get('m');
-  if (d && ['easy', 'medium', 'hard'].includes(d)) difficulty = d;
-  if (m && ['normal', 'timed', 'endless'].includes(m)) gameMode = m;
-  isDailyMode = params.get('daily') === '1';
+  const lvl = parseInt(params.get('level'));
+
+  // Macera modu: ?level=N
+  if (lvl && lvl >= 1 && lvl <= 100 && typeof getLevelDifficulty === 'function') {
+    currentLevel = lvl;
+    difficulty   = getLevelDifficulty(lvl);
+    gameMode     = 'normal';
+    isDailyMode  = false;
+  } else {
+    if (d && ['easy', 'medium', 'hard'].includes(d)) difficulty = d;
+    if (m && ['normal', 'timed', 'endless'].includes(m)) gameMode = m;
+    isDailyMode = params.get('daily') === '1';
+  }
 
   initMathBg();
 

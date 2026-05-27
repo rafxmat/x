@@ -476,6 +476,147 @@ const ACHIEVEMENTS = [
     desc: 'Toplam 10 saat oyna',
     check: s => s.totalTime >= 36000,
   },
+
+  /* ═══════════════════════════════════════════════════════
+     YENİ BAŞARIMLAR (51–100)
+     ═══════════════════════════════════════════════════════ */
+
+  /* ── Düşük eşikli zaferler ── */
+  { id: 'wins5',    icon: '🌟', name: 'Beş Zafer',        desc: '5 oyun kazan',
+    check: s => s.totalWins >= 5 },
+  { id: 'wins750',  icon: '🎗', name: 'Yedi Yüz Elli',    desc: '750 oyun kazan',
+    check: s => s.totalWins >= 750 },
+  { id: 'wins1000', icon: '💫', name: 'Bin Zafer',        desc: '1000 oyun kazan',
+    check: s => s.totalWins >= 1000 },
+
+  /* ── Daha fazla oyun ── */
+  { id: 'games10',   icon: '🎮', name: 'Acemi',           desc: '10 oyun oyna',
+    check: s => s.totalGames >= 10 },
+  { id: 'games25',   icon: '🎯', name: 'Çırak',           desc: '25 oyun oyna',
+    check: s => s.totalGames >= 25 },
+  { id: 'games750',  icon: '📚', name: 'Kitap Dolu',      desc: '750 oyun oyna',
+    check: s => s.totalGames >= 750 },
+  { id: 'games1000', icon: '🌐', name: 'Bin Oyun',        desc: '1000 oyun oyna',
+    check: s => s.totalGames >= 1000 },
+
+  /* ── Hamle eşikleri ── */
+  { id: 'moves500',   icon: '⚡', name: 'Beş Yüz Hamle',   desc: 'Toplam 500 hamle',
+    check: s => s.totalMoves >= 500 },
+  { id: 'moves2500',  icon: '🚀', name: 'İki Bin Beş Yüz', desc: 'Toplam 2500 hamle',
+    check: s => s.totalMoves >= 2500 },
+  { id: 'moves5000',  icon: '💎', name: 'Beş Bin Hamle',   desc: 'Toplam 5000 hamle',
+    check: s => s.totalMoves >= 5000 },
+  { id: 'moves10000', icon: '🪐', name: 'On Bin Hamle',    desc: 'Toplam 10.000 hamle',
+    check: s => s.totalMoves >= 10000 },
+
+  /* ── Süre kategorileri ── */
+  { id: 'min5',     icon: '🕐', name: 'Beş Dakika',  desc: 'Toplam 5 dakika oyna',
+    check: s => s.totalTime >= 300 },
+  { id: 'min30',    icon: '⏲', name: 'Yarım Saat',  desc: 'Toplam 30 dakika oyna',
+    check: s => s.totalTime >= 1800 },
+  { id: 'hour20',   icon: '🌒', name: 'Yirmi Saat',  desc: 'Toplam 20 saat oyna',
+    check: s => s.totalTime >= 72000 },
+  { id: 'hour50',   icon: '🌓', name: 'Elli Saat',   desc: 'Toplam 50 saat oyna',
+    check: s => s.totalTime >= 180000 },
+  { id: 'hour100',  icon: '🌕', name: 'Yüz Saat',    desc: 'Toplam 100 saat oyna',
+    check: s => s.totalTime >= 360000 },
+
+  /* ── Zorluk bazlı (yüksek eşikler) ── */
+  { id: 'easy25',   icon: '🌾', name: 'Kolay Hâkimi', desc: 'Kolay modda 25 oyun kazan',
+    check: s => s.byDiff.easy.wins >= 25 },
+  { id: 'easy50',   icon: '🌳', name: 'Kolay Üstadı', desc: 'Kolay modda 50 oyun kazan',
+    check: s => s.byDiff.easy.wins >= 50 },
+  { id: 'medium25', icon: '🍂', name: 'Orta Hâkimi',  desc: 'Orta modda 25 oyun kazan',
+    check: s => s.byDiff.medium.wins >= 25 },
+  { id: 'medium50', icon: '🔶', name: 'Orta Üstadı',  desc: 'Orta modda 50 oyun kazan',
+    check: s => s.byDiff.medium.wins >= 50 },
+  { id: 'hard25',   icon: '🌶', name: 'Zor Hâkimi',   desc: 'Zor modda 25 oyun kazan',
+    check: s => s.byDiff.hard.wins >= 25 },
+  { id: 'hard50',   icon: '🗡', name: 'Zor Üstadı',   desc: 'Zor modda 50 oyun kazan',
+    check: s => s.byDiff.hard.wins >= 50 },
+
+  /* ── Günlük bulmaca ── */
+  { id: 'daily100', icon: '📓', name: 'Yüz Günlük',     desc: '100 günlük bulmaca tamamla',
+    check: s => s.dailyWins >= 100 },
+  { id: 'daily200', icon: '📔', name: 'İki Yüz Günlük', desc: '200 günlük bulmaca tamamla',
+    check: s => s.dailyWins >= 200 },
+
+  /* ── Sonsuz mod ── */
+  { id: 'endless15',  icon: '🐟', name: 'On Beş Dalga',  desc: 'Sonsuz modda 15 raf',
+    check: s => s.endless.best >= 15 },
+  { id: 'endless75',  icon: '🐋', name: 'Yetmiş Beş',    desc: 'Sonsuz modda 75 raf',
+    check: s => s.endless.best >= 75 },
+  { id: 'endless150', icon: '🦈', name: 'Yüz Elli Raf',  desc: 'Sonsuz modda 150 raf',
+    check: s => s.endless.best >= 150 },
+  { id: 'endless200', icon: '🐉', name: 'İki Yüz Raf',   desc: 'Sonsuz modda 200 raf',
+    check: s => s.endless.best >= 200 },
+  { id: 'endless500', icon: '🌠', name: 'Beş Yüz Raf',   desc: 'Sonsuz modda 500 raf',
+    check: s => s.endless.best >= 500 },
+
+  /* ── Streaks ── */
+  { id: 'streak60',  icon: '🎇', name: 'Altmış Gün', desc: '60 gün üst üste oyna',
+    check: s => s.bestStreak >= 60 },
+  { id: 'streak100', icon: '💯', name: 'Yüz Gün',    desc: '100 gün üst üste oyna',
+    check: s => s.bestStreak >= 100 },
+  { id: 'streak365', icon: '🏆', name: 'Yıl Boyu',   desc: '365 gün üst üste oyna',
+    check: s => s.bestStreak >= 365 },
+
+  /* ── Süre sınırı ── */
+  { id: 'timed25', icon: '🕜', name: 'Hız Tutkunu II',  desc: 'Süre sınırı modunda 25 kez kazan',
+    check: s => s.timed.wins >= 25 },
+  { id: 'timed50', icon: '🕔', name: 'Hız Tutkunu III', desc: 'Süre sınırı modunda 50 kez kazan',
+    check: s => s.timed.wins >= 50 },
+
+  /* ════════════════════════════════════════
+     MACERA MODU BAŞARIMLARI
+     ════════════════════════════════════════ */
+  { id: 'adv_first', icon: '🗺', name: 'Macera Başladı', desc: 'İlk macera seviyesini bitir',
+    check: () => typeof getCompletedCount === 'function' && getCompletedCount() >= 1 },
+  { id: 'adv_5',     icon: '🚶', name: 'Yolcu',           desc: '5 macera seviyesi bitir',
+    check: () => typeof getCompletedCount === 'function' && getCompletedCount() >= 5 },
+  { id: 'adv_15',    icon: '🥾', name: 'Kâşif',           desc: '15 macera seviyesi bitir',
+    check: () => typeof getCompletedCount === 'function' && getCompletedCount() >= 15 },
+  { id: 'adv_25',    icon: '🧭', name: 'Maceracı',        desc: '25 macera seviyesi bitir',
+    check: () => typeof getCompletedCount === 'function' && getCompletedCount() >= 25 },
+  { id: 'adv_50',    icon: '🗻', name: 'Yarı Yolda',      desc: '50 macera seviyesi bitir',
+    check: () => typeof getCompletedCount === 'function' && getCompletedCount() >= 50 },
+  { id: 'adv_75',    icon: '🌋', name: 'Sona Yaklaş',     desc: '75 macera seviyesi bitir',
+    check: () => typeof getCompletedCount === 'function' && getCompletedCount() >= 75 },
+  { id: 'adv_100',   icon: '🏔', name: 'Macera Tamam',    desc: 'Tüm 100 macera seviyesini bitir',
+    check: () => typeof getCompletedCount === 'function' && getCompletedCount() >= 100 },
+
+  { id: 'adv_boss1',    icon: '⚔', name: 'Boss Avcısı', desc: 'İlk boss seviyesini (20) bitir',
+    check: () => typeof getLevelStars === 'function' && getLevelStars(20) > 0 },
+  { id: 'adv_boss_all', icon: '👹', name: 'Beş Boss',    desc: 'Tüm boss seviyelerini bitir',
+    check: () => typeof getLevelStars === 'function' && [20,40,60,80,100].every(n => getLevelStars(n) > 0) },
+
+  { id: 'adv_chapter1',  icon: '🌱', name: 'Tohum Çiçeklendi', desc: 'Bölüm 1 (1–10) tamamla',
+    check: () => {
+      if (typeof getLevelStars !== 'function') return false;
+      for (let i = 1; i <= 10; i++) if (getLevelStars(i) === 0) return false;
+      return true;
+    }},
+  { id: 'adv_chapter5',  icon: '⛰', name: 'Dağı Aştı',        desc: 'Bölüm 5 (41–50) tamamla',
+    check: () => {
+      if (typeof getLevelStars !== 'function') return false;
+      for (let i = 41; i <= 50; i++) if (getLevelStars(i) === 0) return false;
+      return true;
+    }},
+  { id: 'adv_chapter10', icon: '🌌', name: 'Son Bölüm',        desc: 'Bölüm 10 (91–100) tamamla',
+    check: () => {
+      if (typeof getLevelStars !== 'function') return false;
+      for (let i = 91; i <= 100; i++) if (getLevelStars(i) === 0) return false;
+      return true;
+    }},
+
+  { id: 'adv_stars30',  icon: '✨', name: 'Otuz Yıldız',      desc: 'Macera modunda 30 yıldız topla',
+    check: () => typeof getTotalStars === 'function' && getTotalStars() >= 30 },
+  { id: 'adv_stars100', icon: '🌟', name: 'Yüz Yıldız',       desc: 'Macera modunda 100 yıldız topla',
+    check: () => typeof getTotalStars === 'function' && getTotalStars() >= 100 },
+  { id: 'adv_stars200', icon: '💫', name: 'İki Yüz Yıldız',   desc: 'Macera modunda 200 yıldız topla',
+    check: () => typeof getTotalStars === 'function' && getTotalStars() >= 200 },
+  { id: 'adv_stars300', icon: '💎', name: 'Mükemmel Macera',  desc: 'Tüm 300 macera yıldızını topla',
+    check: () => typeof getTotalStars === 'function' && getTotalStars() >= 300 },
 ];
 
 function getUnlockedIds() {

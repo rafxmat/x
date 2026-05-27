@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<script>(function(){var t=localStorage.getItem('rafx_theme');document.documentElement.dataset.theme=(t==='light')?'light':'dark';})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAF× — Macera Haritası</title>
+<link rel="stylesheet" href="dist/style.min.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#d4f03c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="RAF×">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+<meta name="robots" content="noindex, nofollow">
+<script src="dist/core.bundle.min.js" defer></script>
+</head>
+<body>
+
+<div class="math-bg" id="math-bg" aria-hidden="true"></div>
+
+<div class="map-page">
+
+  <!-- Üst Bar -->
+  <header class="map-header">
+    <a href="index.html" class="map-back-btn" title="Geri">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+    </a>
+    <div class="map-header-title">Macera Modu</div>
+    <div class="map-progress">
+      <span class="map-progress-stars">⭐ <b id="total-stars">0</b></span>
+      <span class="map-progress-sep">·</span>
+      <span class="map-progress-count"><b id="completed-count">0</b>/100</span>
+    </div>
+  </header>
+
+  <!-- Bilgi Kartı -->
+  <div class="map-legend">
+    <div class="map-legend-item easy">
+      <span class="map-legend-dot"></span>
+      <span class="map-legend-text">Kolay</span>
+    </div>
+    <div class="map-legend-item medium">
+      <span class="map-legend-dot"></span>
+      <span class="map-legend-text">4 & 5'in katları · Orta</span>
+    </div>
+    <div class="map-legend-item hard">
+      <span class="map-legend-dot"></span>
+      <span class="map-legend-text">9 & 10'un katları · Zor</span>
+    </div>
+    <div class="map-legend-item boss">
+      <span class="map-legend-dot">👑</span>
+      <span class="map-legend-text">20, 40, 60, 80, 100 · Boss</span>
+    </div>
+  </div>
+
+  <!-- Yılan Yol -->
+  <div class="map-path" id="map-path"><!-- JS --></div>
+
+</div>
+
+<!-- Seviye Önizleme Modal -->
+<div id="level-preview" onclick="if(event.target===this)closeLevelPreview()">
+  <div class="level-preview-card">
+    <div class="level-preview-close" onclick="closeLevelPreview()">✕</div>
+    <div class="level-preview-num" id="lp-num">—</div>
+    <div class="level-preview-diff" id="lp-diff">—</div>
+    <div class="level-preview-stars" id="lp-stars"></div>
+    <div class="level-preview-meta" id="lp-meta"></div>
+    <div class="level-preview-actions">
+      <a class="btn btn-primary" id="lp-play-btn" href="#">▷ Oyna</a>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════ ARKA PLAN ════ */
+(function initMathBg() {
+  const bg = document.getElementById('math-bg');
+  if (!bg) return;
+  const PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37];
+  const COUNT  = 14;
+  let html = '';
+  for (let i = 0; i < COUNT; i++) {
+    const num   = PRIMES[Math.floor(Math.random() * PRIMES.length)];
+    const left  = (Math.random() * 92 + 4).toFixed(1);
+    const size  = (Math.random() * 4 + 3).toFixed(2);
+    const dur   = (Math.random() * 120 + 140).toFixed(0);
+    const delay = -Math.floor(Math.random() * dur);
+    const tilt  = (Math.random() * 10 - 5).toFixed(1);
+    html += `<span class="math-num" style="left:${left}%;font-size:${size}rem;animation-duration:${dur}s;animation-delay:${delay}s;--tilt:${tilt}deg">${num}</span>`;
+  }
+  bg.innerHTML = html;
+})();
+
+/* ════ HARİTA OLUŞTUR — Yılan Yol ════ */
+// Zigzag deseni: 8 adımlı sinüs dalgası, sağ→sol→sağ
+const ZIGZAG_OFFSETS = [0, 55, 80, 55, 0, -55, -80, -55];
+
+const CHAPTER_THEMES = [
+  { icon: '🌱', name: 'Tohum' },
+  { icon: '🌿', name: 'Filiz' },
+  { icon: '🌳', name: 'Ağaç' },
+  { icon: '⛰',  name: 'Dağ' },
+  { icon: '🏔', name: 'Zirve' },
+  { icon: '🌋', name: 'Volkan' },
+  { icon: '🌊', name: 'Okyanus' },
+  { icon: '⚡', name: 'Fırtına' },
+  { icon: '🌌', name: 'Galaksi' },
+  { icon: '👑', name: 'Taç' },
+];
+
+function buildMap() {
+  const path = document.getElementById('map-path');
+  if (!path) return;
+
+  const maxUnlocked = getMaxUnlockedLevel();
+  let html = '';
+
+  for (let lvl = 1; lvl <= 100; lvl++) {
+    // Her 10 seviyede bir bölüm ayracı
+    if ((lvl - 1) % 10 === 0) {
+      const chapNum = Math.floor((lvl - 1) / 10);
+      const theme   = CHAPTER_THEMES[chapNum] || CHAPTER_THEMES[0];
+      const start   = lvl, end = Math.min(lvl + 9, 100);
+      html += `
+        <div class="map-chapter">
+          <span class="map-chapter-icon">${theme.icon}</span>
+          <div class="map-chapter-text">
+            <span class="map-chapter-name">Bölüm ${chapNum + 1} · ${theme.name}</span>
+            <span class="map-chapter-range">Seviye ${start} – ${end}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    const diff     = getLevelDifficulty(lvl);
+    const boss     = isBossLevel(lvl);
+    const stars    = getLevelStars(lvl);
+    const unlocked = isLevelUnlocked(lvl);
+    const isNext   = unlocked && stars === 0 && lvl === maxUnlocked;
+    const offset   = ZIGZAG_OFFSETS[(lvl - 1) % ZIGZAG_OFFSETS.length];
+
+    // Bir önceki seviyeye diyagonal bağlantı çizgisi.
+    // Her bölümün ilk seviyesinde bağlantı YOK (üstte chapter divider var).
+    const isChapterStart = (lvl - 1) % 10 === 0;
+    if (lvl > 1 && !isChapterStart) {
+      const prevOffset = ZIGZAG_OFFSETS[(lvl - 2) % ZIGZAG_OFFSETS.length];
+      const x1 = 180 + prevOffset;
+      const x2 = 180 + offset;
+      html += `
+        <div class="level-link" aria-hidden="true">
+          <svg viewBox="0 0 360 22" preserveAspectRatio="none">
+            <line x1="${x1}" y1="0" x2="${x2}" y2="22"
+                  stroke-linecap="round" stroke-dasharray="4 7"/>
+          </svg>
+        </div>
+      `;
+    }
+
+    let cls = 'level-node ' + diff;
+    if (boss)       cls += ' boss';
+    if (!unlocked)  cls += ' locked';
+    if (stars > 0)  cls += ' done';
+    if (isNext)     cls += ' next';
+
+    const crownHtml = boss ? '<span class="level-crown">👑</span>' : '';
+    const inner = !unlocked
+      ? `${crownHtml}<span class="level-lock">🔒</span>`
+      : `
+        ${crownHtml}
+        <span class="level-num">${lvl}</span>
+        ${stars > 0
+          ? `<span class="level-stars">${'★'.repeat(stars)}<span class="level-stars-empty">${'★'.repeat(3-stars)}</span></span>`
+          : ''}
+      `;
+
+    const nextBadge = isNext ? '<div class="level-next-badge">BAŞLA</div>' : '';
+
+    html += `
+      <div class="level-row" style="--offset:${offset}px">
+        ${nextBadge}
+        <button class="${cls}" data-level="${lvl}" onclick="openLevelPreview(${lvl})">${inner}</button>
+      </div>
+    `;
+  }
+  path.innerHTML = html;
+
+  document.getElementById('total-stars').textContent     = getTotalStars();
+  document.getElementById('completed-count').textContent = getCompletedCount();
+
+  // İlk açık seviyeye otomatik scroll
+  setTimeout(() => {
+    const nextEl = path.querySelector('.level-node.next');
+    if (nextEl) nextEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 200);
+}
+
+/* ════ SEVİYE ÖNİZLEME ════ */
+function openLevelPreview(lvl) {
+  if (!isLevelUnlocked(lvl)) return;
+
+  const diff   = getLevelDifficulty(lvl);
+  const boss   = isBossLevel(lvl);
+  const rec    = getLevelRecord(lvl);
+  const stars  = rec ? rec.stars : 0;
+  const diffName = { easy: 'Kolay', medium: 'Orta', hard: 'Zor' }[diff];
+
+  document.getElementById('lp-num').textContent = 'Seviye ' + lvl;
+  const diffEl = document.getElementById('lp-diff');
+  diffEl.textContent = boss ? '👑 BOSS · ' + diffName : diffName;
+  diffEl.className = 'level-preview-diff ' + diff + (boss ? ' boss' : '');
+
+  document.getElementById('lp-stars').innerHTML = [0,1,2].map(i =>
+    `<span class="lp-star${i < stars ? ' earned' : ' empty'}">★</span>`
+  ).join('');
+
+  const meta = document.getElementById('lp-meta');
+  if (rec && rec.time) {
+    const m = Math.floor(rec.time / 60), s = rec.time % 60;
+    meta.innerHTML = `En iyi: <b>${m}:${s.toString().padStart(2,'0')}</b> · <b>${rec.moves}</b> hamle`;
+  } else {
+    meta.textContent = 'Henüz oynanmadı';
+  }
+
+  document.getElementById('lp-play-btn').href = `game.html?level=${lvl}`;
+  document.getElementById('level-preview').classList.add('show');
+}
+
+function closeLevelPreview() {
+  document.getElementById('level-preview').classList.remove('show');
+}
+
+/* ════ BAŞLAT ════ */
+window.addEventListener('DOMContentLoaded', buildMap);
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
+</script>
+
+</body>
+</html>
