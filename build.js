@@ -23,6 +23,7 @@ const BUNDLES = {
     'js/confetti.js',
     'js/render.js',
     'js/hint.js',
+    'js/stopwatch.js',
     'js/screens.js',
     'js/game.js',
     'js/theme.js',

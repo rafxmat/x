@@ -189,6 +189,14 @@
       </div>
 
       <div class="igs-row">
+        <div class="igs-row-label">Kronometre</div>
+        <label class="uiv-switch">
+          <input id="igs-stopwatch" type="checkbox" onchange="igsToggleStopwatch(this.checked)">
+          <span class="uiv-slider"></span>
+        </label>
+      </div>
+
+      <div class="igs-row">
         <div class="igs-row-label">Tema</div>
         <label class="switch">
           <input id="igs-theme-toggle" type="checkbox" onchange="igsSetTheme(this.checked)">
@@ -284,6 +292,32 @@
 <div id="replay-bar" style="display:none">
   <span id="replay-status">0 / 0 hamle</span>
   <button class="replay-skip-btn" onclick="skipReplay()">Atla →</button>
+</div>
+
+<!-- Kronometre Pencere (sürüklenebilir + sol alttan resize) -->
+<div id="stopwatch-widget" class="stopwatch-widget" role="dialog" aria-label="Kronometre">
+  <div class="sw-header">
+    <button class="sw-history-btn" onclick="openSwHistory()" title="Geçmiş süreler">📋 Geçmiş</button>
+    <button class="sw-close" onclick="closeStopwatch()" aria-label="Kapat">✕</button>
+  </div>
+  <div class="sw-display" id="sw-display">00:00.0</div>
+  <div class="sw-controls">
+    <button class="sw-start-btn" id="sw-start-btn" onclick="toggleStopwatch()">▷ Başlat</button>
+    <button class="sw-reset-btn" onclick="resetStopwatch()" aria-label="Sıfırla" title="Sıfırla">↻</button>
+  </div>
+  <div class="sw-resize-handle" aria-hidden="true" title="Boyutlandır"></div>
+</div>
+
+<!-- Kronometre Geçmiş Penceresi -->
+<div id="sw-history-window" class="sw-history-window" role="dialog" aria-label="Süre geçmişi">
+  <div class="sw-hist-header">
+    <span class="sw-hist-title">📋 Geçmiş Süreler</span>
+    <button class="sw-hist-close" onclick="closeSwHistory()" aria-label="Kapat">✕</button>
+  </div>
+  <div class="sw-hist-list" id="sw-hist-list"></div>
+  <div class="sw-hist-footer">
+    <button class="sw-hist-clear" onclick="clearSwHistory()">Tümünü Temizle</button>
+  </div>
 </div>
 
 <!-- Günlük Bulmaca Zaten Oynanmış -->

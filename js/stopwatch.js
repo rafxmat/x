@@ -2,7 +2,9 @@
 // Oyunun puanlama timer'ından tamamen ayrı. Yıldız/puan etkilemez.
 // Sürüklenebilir pencere, position localStorage'a kaydedilir.
 
-const SW_POS_KEY = 'rafx_sw_pos';
+const SW_POS_KEY  = 'rafx_sw_pos';
+const SW_HIST_KEY = 'rafx_sw_history';
+const SW_HIST_MAX = 50;
 
 let _swStartTime = 0;   // running başladığı andaki Date.now()
 let _swElapsedMs = 0;   // Toplam birikmiş süre (ms)
@@ -68,6 +70,7 @@ function toggleStopwatch() {
 function resetStopwatch() {
   const wasRunning = _swRunning;
   if (wasRunning) clearInterval(_swInterval);
+  _swSaveToHistory(_swGetTotal());
   _swElapsedMs = 0;
   _swStartTime = Date.now();
   if (!wasRunning) _swRunning = false;
@@ -80,16 +83,23 @@ function openStopwatch() {
   const w = document.getElementById('stopwatch-widget');
   if (!w) return;
 
-  // Kaydedilmiş konumu uygula (yoksa varsayılan üst-sağ köşe)
-  const pos = _swGetPos();
-  if (pos && _swPosInBounds(pos.x, pos.y)) {
-    w.style.left  = pos.x + 'px';
-    w.style.top   = pos.y + 'px';
+  // Kaydedilmiş konum ve boyutu uygula (yoksa varsayılan üst-sağ köşe)
+  const st = _swGetPos();
+  if (st && Number.isFinite(st.x) && Number.isFinite(st.y) && _swPosInBounds(st.x, st.y)) {
+    w.style.left  = st.x + 'px';
+    w.style.top   = st.y + 'px';
     w.style.right = 'auto';
   } else {
     w.style.left  = '';
     w.style.top   = '';
     w.style.right = '';
+  }
+  if (st && Number.isFinite(st.w) && Number.isFinite(st.h)) {
+    w.style.width  = st.w + 'px';
+    w.style.height = st.h + 'px';
+  } else {
+    w.style.width  = '';
+    w.style.height = '';
   }
 
   w.classList.add('show');
@@ -100,17 +110,27 @@ function openStopwatch() {
 function closeStopwatch() {
   const w = document.getElementById('stopwatch-widget');
   if (w) w.classList.remove('show');
-  // Timer arkada çalışmaya devam eder; yeniden açıldığında doğru süreyi gösterir.
+  // Kapatınca sıfırlan: sayım durur, süre 0'a döner. Önce geçmişe kaydet.
+  _swSaveToHistory(_swGetTotal());
+  if (_swInterval) { clearInterval(_swInterval); _swInterval = null; }
+  _swRunning   = false;
+  _swElapsedMs = 0;
+  _swStartTime = 0;
+  _swUpdateDisplay();
+  _swUpdateButton();
 }
 
-/* ── Konum kaydı ── */
+/* ── Konum + boyut kaydı ── */
 function _swGetPos() {
   try { return JSON.parse(localStorage.getItem(SW_POS_KEY)); }
   catch { return null; }
 }
-function _swSavePos(x, y) {
-  localStorage.setItem(SW_POS_KEY, JSON.stringify({ x, y }));
+function _swSaveState(patch) {
+  const prev = _swGetPos() || {};
+  localStorage.setItem(SW_POS_KEY, JSON.stringify({ ...prev, ...patch }));
 }
+function _swSavePos(x, y) { _swSaveState({ x, y }); }
+function _swSaveSize(w, h) { _swSaveState({ w, h }); }
 function _swPosInBounds(x, y) {
   return x >= 0 && y >= 0 &&
          x < window.innerWidth - 50 &&
@@ -128,8 +148,8 @@ function _swInitDrag() {
   let startX = 0, startY = 0, origX = 0, origY = 0;
 
   function onStart(e) {
-    // Kapatma butonunda sürüklemeyi başlatma
-    if (e.target.closest('.sw-close')) return;
+    // Kapatma veya Geçmiş butonunda sürüklemeyi başlatma
+    if (e.target.closest('.sw-close, .sw-history-btn')) return;
     e.preventDefault();
     const pt = e.touches ? e.touches[0] : e;
     dragging = true;
@@ -177,4 +197,143 @@ function _swInitDrag() {
   window.addEventListener('touchcancel',onEnd);
 }
 
-window.addEventListener('DOMContentLoaded', _swInitDrag);
+/* ── Resize (sol alt köşeden) ── */
+function _swInitResize() {
+  const w = document.getElementById('stopwatch-widget');
+  if (!w) return;
+  const handle = w.querySelector('.sw-resize-handle');
+  if (!handle) return;
+
+  // CSS min/max ile uyumlu sınırlar
+  const MIN_W = 160, MAX_W = 500;
+  const MIN_H = 140, MAX_H = 400;
+
+  let resizing = false;
+  let startX = 0, startY = 0;
+  let startW = 0, startH = 0, startLeft = 0;
+
+  function onStart(e) {
+    e.preventDefault();
+    e.stopPropagation(); // drag handler'a gitmesin
+    const pt = e.touches ? e.touches[0] : e;
+    const rect = w.getBoundingClientRect();
+    resizing = true;
+    startX = pt.clientX;
+    startY = pt.clientY;
+    startW = rect.width;
+    startH = rect.height;
+    startLeft = rect.left;
+    // Sağ köşeyi sabitle: right'ı kaldır, left'i pixele çevir
+    w.style.right = 'auto';
+    w.style.left  = startLeft + 'px';
+    w.style.transition = 'none';
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'sw-resize';
+  }
+
+  function onMove(e) {
+    if (!resizing) return;
+    const pt = e.touches ? e.touches[0] : e;
+    if (e.touches) e.preventDefault();
+    const dx = pt.clientX - startX;
+    const dy = pt.clientY - startY;
+    // Sol-alt köşe: sağ üst sabit. dx pozitif (sağa) → genişlik küçülür, left artar.
+    //                                 dy pozitif (aşağı) → yükseklik artar.
+    let newW = startW - dx;
+    let newH = startH + dy;
+    newW = Math.max(MIN_W, Math.min(MAX_W, newW));
+    newH = Math.max(MIN_H, Math.min(MAX_H, newH));
+    // Sağ kenar sabit: left = startLeft + (startW - newW)
+    const newLeft = startLeft + (startW - newW);
+    w.style.width  = newW + 'px';
+    w.style.height = newH + 'px';
+    w.style.left   = newLeft + 'px';
+  }
+
+  function onEnd() {
+    if (!resizing) return;
+    resizing = false;
+    w.style.transition = '';
+    document.body.style.userSelect = '';
+    document.body.style.cursor = '';
+    const rect = w.getBoundingClientRect();
+    _swSavePos(Math.round(rect.left), Math.round(rect.top));
+    _swSaveSize(Math.round(rect.width), Math.round(rect.height));
+  }
+
+  handle.addEventListener('mousedown',  onStart);
+  handle.addEventListener('touchstart', onStart, { passive: false });
+  window.addEventListener('mousemove',  onMove);
+  window.addEventListener('touchmove',  onMove, { passive: false });
+  window.addEventListener('mouseup',    onEnd);
+  window.addEventListener('touchend',   onEnd);
+  window.addEventListener('touchcancel',onEnd);
+}
+
+window.addEventListener('DOMContentLoaded', () => { _swInitDrag(); _swInitResize(); });
+
+/* ── Geçmiş süreler ── */
+function _swGetHistory() {
+  try { return JSON.parse(localStorage.getItem(SW_HIST_KEY)) || []; }
+  catch { return []; }
+}
+function _swSetHistory(arr) {
+  localStorage.setItem(SW_HIST_KEY, JSON.stringify(arr));
+}
+function _swSaveToHistory(ms) {
+  if (!ms || ms < 100) return; // 100ms'den kısaysa kayıt etme (kazara reset)
+  const hist = _swGetHistory();
+  hist.unshift({ ms: Math.round(ms), ts: Date.now() });
+  if (hist.length > SW_HIST_MAX) hist.length = SW_HIST_MAX;
+  _swSetHistory(hist);
+  _swRenderHistory();
+}
+
+function _swFormatWhen(ts) {
+  const d = new Date(ts);
+  const pad = n => String(n).padStart(2, '0');
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function _swRenderHistory() {
+  const listEl = document.getElementById('sw-hist-list');
+  if (!listEl) return;
+  const hist = _swGetHistory();
+  if (!hist.length) {
+    listEl.innerHTML = '<div class="sw-hist-empty">Henüz kayıtlı süre yok</div>';
+    return;
+  }
+  listEl.innerHTML = hist.map((rec, i) => `
+    <div class="sw-hist-item">
+      <span class="sw-hist-time">${_swFormat(rec.ms)}</span>
+      <span class="sw-hist-when">${_swFormatWhen(rec.ts)}</span>
+      <button class="sw-hist-del" onclick="_swDeleteHistoryItem(${i})" aria-label="Sil" title="Sil">×</button>
+    </div>
+  `).join('');
+}
+
+function _swDeleteHistoryItem(i) {
+  const hist = _swGetHistory();
+  hist.splice(i, 1);
+  _swSetHistory(hist);
+  _swRenderHistory();
+}
+
+function clearSwHistory() {
+  if (!_swGetHistory().length) return;
+  if (!confirm('Tüm kayıtlı süreler silinsin mi?')) return;
+  _swSetHistory([]);
+  _swRenderHistory();
+}
+
+function openSwHistory() {
+  const w = document.getElementById('sw-history-window');
+  if (!w) return;
+  _swRenderHistory();
+  w.classList.add('show');
+}
+
+function closeSwHistory() {
+  const w = document.getElementById('sw-history-window');
+  if (w) w.classList.remove('show');
+}

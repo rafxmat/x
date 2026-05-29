@@ -242,6 +242,10 @@ function openInGameSettings() {
   document.getElementById('igs-haptic').checked = getHaptic();
   document.getElementById('igs-theme-toggle').checked = isDark;
 
+  const swEl = document.getElementById('igs-stopwatch');
+  const swWidget = document.getElementById('stopwatch-widget');
+  if (swEl) swEl.checked = !!(swWidget && swWidget.classList.contains('show'));
+
   document.getElementById('igs-pill-drag').classList.toggle('active', isDrag);
   document.getElementById('igs-pill-click').classList.toggle('active', !isDrag);
 
@@ -304,6 +308,11 @@ function igsSetControl(mode) {
   const isDrag = mode !== 'click';
   document.getElementById('igs-pill-drag').classList.toggle('active', isDrag);
   document.getElementById('igs-pill-click').classList.toggle('active', !isDrag);
+}
+
+function igsToggleStopwatch(on) {
+  if (on) openStopwatch();
+  else    closeStopwatch();
 }
 
 /* ── Başarım toast kuyruğu ── */
